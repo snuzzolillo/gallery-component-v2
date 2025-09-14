@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModalComponent Test Page</title>    <style>
+        .controls button {
+            margin: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh;">
+        <div class="controls" style="padding: 2rem; background: var(--color-background-component, #222); border-radius: 8px; text-align: center;">
+            <h1 style="margin-top: 0;">ModalComponent Test Controls</h1>
+            <div>
+                <button id="btn-simple">Open Simple Modal</button>
+                <button id="btn-confirm">Open Confirmation Modal</button>
+                <button id="btn-form">Open Form Modal</button>
+                <button id="btn-large">Open Large Modal</button>
+            </div>
+            <div style="margin-top: 2rem; border-top: 1px solid var(--color-border, #444); padding-top: 1.5rem;">
+                <h2>Density Controls</h2>
+                <button data-density="super-compact">Super Compact</button>
+                <button data-density="compact">Compact</button>
+                <button data-density="regular">Regular (Default)</button>
+                <button data-density="comfortable">Comfortable</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- The modal component will be attached here -->
+    <div id="modal-container"></div>
+
+    <script type="module">
+        import ModalComponent from './ModalComponent.js';
+
+        // --- Density Controls ---
+        document.querySelectorAll('[data-density]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const density = e.target.dataset.density;
+                document.body.classList.remove('density-super-compact', 'density-compact', 'density-comfortable');
+                if (density !== 'regular') {
+                    document.body.classList.add(`density-${density}`);
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Component Initialization ---
+            // Inspired by jqxWidgets, we instantiate the component on a container element.
+            // The component itself will manage its DOM elements and append them where needed.
+            const modal = new ModalComponent('#modal-container');
+
+            // --- Event Listeners for the Modal ---
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.addEventListener('open', () => console.log('EVENT: Modal opened'));
+            modalContainer.addEventListener('close', () => console.log('EVENT: Modal closed'));
+            modalContainer.addEventListener('buttonClick', (e) => {
+                console.log(`EVENT: Modal button clicked. Value: "${e.detail.value}"`);
+                if (e.detail.value === 'ok') {
+                    alert('You clicked OK!');
+                    modal.close();
+                }
+            });
+
+            // --- Control Button Handlers ---
+
+            // 1. Simple Modal with basic text
+            document.getElementById('btn-simple').addEventListener('click', () => {
+                modal.setOptions({
+                    title: 'Simple Message',
+                    buttons: []
+                });
+                modal.setContent('<p>This is a basic modal with some text content.</p>');
+                modal.open();
+            });
+
+            // 2. Confirmation Modal with buttons
+            document.getElementById('btn-confirm').addEventListener('click', () => {
+                modal.setOptions({
+                    title: 'Confirm Action',
+                    buttons: [
+                        { label: 'Cancel', value: 'cancel' },
+                        { label: 'Confirm', value: 'ok', class: 'primary' }
+                    ]
+                });
+                modal.setContent('<p>Are you sure you want to proceed with this action? This cannot be undone.</p>');
+                modal.open();
+            });
+
+            // 3. Modal with a form inside
+            document.getElementById('btn-form').addEventListener('click', () => {
+                const formContent = `
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" style="padding: 0.5rem;">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" style="padding: 0.5rem;">
+                    </div>
+                `;
+                modal.setOptions({
+                    title: 'User Details',
+                    buttons: [
+                        { label: 'Close', value: 'close' },
+                        { label: 'Submit', value: 'submit', class: 'primary' }
+                    ]
+                });
+                modal.setContent(formContent);
+                modal.open();
+            });
+
+            // 4. Large modal
+             document.getElementById('btn-large').addEventListener('click', () => {
+                modal.setOptions({ title: 'Large Content', size: 'large', buttons: [{ label: 'Done', value: 'close', class: 'primary' }] });
+                modal.setContent('<p>This modal is larger to accommodate more content.</p><img src="https://placehold.co/800x400" style="max-width: 100%; margin-top: 1rem;">');
+                modal.open();
+            });
+        });
+    </script>
+
+</body>
+</html>

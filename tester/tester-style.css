@@ -1,0 +1,52 @@
+/* FILE: /tester/tester-style.css */
+/* VERSION: 1.0 */
+
+/*
+ * Styles for the tester application shell (the page itself).
+ * It consumes the variables defined in themes.css.
+*/
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.main-header {
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+}
+
+.main-header p {
+    margin: 0.25rem 0 0 0;
+    color: var(--color-text-secondary);
+}
+
+main {
+    padding: 2rem;
+}
+
+.gallery-wrapper {
+    min-height: 200px;
+    border: 1px dashed var(--color-border);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.gallery-wrapper .error {
+    color: var(--color-danger, #c0392b);
+    font-weight: bold;
+}
+
+.global-state-container {
+    font-family: sans-serif;
+}

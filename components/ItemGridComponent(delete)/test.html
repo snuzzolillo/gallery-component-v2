@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ItemGridComponent Test Page</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; font-family: sans-serif; }
+        .test-wrapper { display: flex; flex-direction: column; height: 100vh; }
+        .controls {
+            padding: 1rem;
+            background: var(--color-background-component);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .controls label { font-weight: bold; }
+        .controls input, .controls select {
+            padding: 0.5rem;
+            background-color: var(--color-background-inset);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+        }
+        #grid-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: var(--color-background-page);
+        }
+        #log {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 300px;
+            height: 150px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="test-wrapper">
+        <div class="controls">
+            <div>
+                <label for="item-size">Item Size:</label>
+                <input type="number" id="item-size" value="150" step="10">
+            </div>
+            <div>
+                <label for="aspect-ratio">Aspect Ratio:</label>
+                <select id="aspect-ratio">
+                    <option value="1:1" selected>1:1 (Square)</option>
+                    <option value="16:9">16:9 (Widescreen)</option>
+                    <option value="4:3">4:3 (Standard)</option>
+                    <option value="3:4">3:4 (Portrait)</option>
+                </select>
+            </div>
+        </div>
+        <div id="grid-container"></div>
+    </div>
+
+    <div id="log"></div>
+
+    <script type="module">
+        import ItemGridComponent from './ItemGridComponent.js';
+
+        const logEl = document.getElementById('log');
+        function log(message) {
+            logEl.innerHTML += `> ${message}<br>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        const mockItems = [
+            { id: 1, name: 'Mountain.jpg', type: 'image', thumbUrl: 'https://placehold.co/300x300/6C8EBF/FFFFFF?text=Mountain', actions: [{id: 'preview', label: 'Preview', icon: '🔍'}, {id: 'delete', label: 'Delete', icon: '🗑️'}] },
+            { id: 2, name: 'Ocean.png', type: 'image', thumbUrl: 'https://placehold.co/300x300/4F7CAC/FFFFFF?text=Ocean', actions: [{id: 'preview', label: 'Preview', icon: '🔍'}, {id: 'delete', label: 'Delete', icon: '🗑️'}] },
+            { id: 4, name: 'Skyscrapers.webp', type: 'image', thumbUrl: 'https://placehold.co/300x300/8E9EAB/FFFFFF?text=Sky', actions: [{id: 'preview', label: 'Preview', icon: '🔍'}, {id: 'delete', label: 'Delete', icon: '🗑️'}] },
+            { id: 5, name: 'Forest.gif', type: 'image', thumbUrl: 'https://placehold.co/300x300/3A5F0B/FFFFFF?text=Forest', actions: [{id: 'preview', label: 'Preview', icon: '🔍'}, {id: 'delete', label: 'Delete', icon: '🗑️'}] },
+            { id: 6, name: 'City Night.jpg', type: 'image', thumbUrl: 'https://placehold.co/300x300/2C3E50/FFFFFF?text=City', actions: [{id: 'preview', label: 'Preview', icon: '🔍'}, {id: 'delete', label: 'Delete', icon: '🗑️'}] },
+            { id: 7, name: 'Abstract Art.jpg', type: 'image', thumbUrl: 'https://placehold.co/300x300/E74C3C/FFFFFF?text=Art', actions: [{id: 'preview', label: 'Preview', icon: '🔍'}, {id: 'delete', label: 'Delete', icon: '🗑️'}] },
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('grid-container');
+
+            const grid = new ItemGridComponent(gridContainer, {
+                itemSize: 150,
+                aspectRatio: '1:1'
+            });
+
+            grid.setItems(mockItems);
+
+            // --- Event Listeners ---
+            gridContainer.addEventListener('itemClick', e => {
+                log(`itemClick: id=${e.detail.itemId}`);
+            });
+            gridContainer.addEventListener('itemDblClick', e => {
+                log(`itemDblClick: id=${e.detail.itemId}`);
+            });
+            gridContainer.addEventListener('actionClick', e => {
+                log(`actionClick: id=${e.detail.itemId}, action=${e.detail.action}`);
+            });
+
+            // --- Controls ---
+            const sizeInput = document.getElementById('item-size');
+            const ratioSelect = document.getElementById('aspect-ratio');
+
+            function updateOptions() {
+                const newOptions = {
+                    itemSize: parseInt(sizeInput.value, 10),
+                    aspectRatio: ratioSelect.value
+                };
+                grid.setOptions(newOptions);
+                log(`Options updated: size=${newOptions.itemSize}, ratio=${newOptions.aspectRatio}`);
+            }
+
+            sizeInput.addEventListener('change', updateOptions);
+            ratioSelect.addEventListener('change', updateOptions);
+        });
+    </script>
+
+</body>
+</html>

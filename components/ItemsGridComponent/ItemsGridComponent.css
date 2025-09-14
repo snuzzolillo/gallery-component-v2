@@ -1,0 +1,60 @@
+/* =============================================================== */
+/* FILE: /components/ItemsGridComponent/ItemsGridComponent.css     */
+/* VERSION: 3.0.0 (Flexible Layout Options)                        */
+/* =============================================================== */
+@import url('/themes/dark-theme.css');
+
+.item-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--grid-item-min-size, 150px), 1fr));
+    gap: var(--grid-gap, 1.5rem);
+    padding: var(--grid-gap, 1.5rem);
+    align-content: start;
+    box-sizing: border-box;
+}
+
+.item-grid-container.layout-horizontal {
+    /* For horizontal layout, we need to define rows and let columns flow */
+    grid-auto-flow: column;
+    grid-template-rows: repeat(auto-fill, minmax(var(--grid-item-min-size, 150px), 1fr));
+}
+
+.grid-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: border-color 0.2s;
+    background-color: var(--color-background-inset);
+    height: 0;
+    padding-bottom: var(--grid-item-aspect-ratio-padding, 100%); /* Controlled by JS */
+    display: block;
+}
+
+.grid-item.selected {
+    border-color: var(--color-button-primary-bg);
+}
+
+.grid-item-thumb {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+}
+
+.grid-item-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 0.75rem; color: white;
+}
+
+.grid-item-name {
+    display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem; font-weight: 500; padding-right: 80px;
+}
+
+.grid-item-actions {
+    position: absolute; bottom: 0.5rem; right: 0.5rem; display: flex; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.grid-item:hover .grid-item-actions { opacity: 1; pointer-events: auto; }
+.grid-item-btn-icon { background: none; border: none; padding: 0.5rem; color: #eee; font-size: 1rem; cursor: pointer; }
+.grid-item-type-icon { position: absolute; top: 8px; left: 8px; background-color: rgba(0,0,0,0.6); border-radius: 5px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.grid-placeholder { grid-column: 1 / -1; text-align: center; color: var(--color-text-secondary); }
+
+.item-fade-out { animation: fadeOut 0.4s ease forwards; }
+@keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }

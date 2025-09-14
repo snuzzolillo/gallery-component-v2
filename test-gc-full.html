@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent - Full Isolated Test</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: sans-serif;
+        }
+        .theme-switcher {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 9999;
+        }
+        .theme-switcher button {
+            margin: 0 5px;
+        }
+        #gallery-container {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switcher">
+        <span>Switch Theme:</span>
+        <button id="theme-dark">Dark</button>
+        <button id="theme-light">Light</button>
+    </div>
+
+    <div id="gallery-container"></div>
+
+    <script type="module">
+        import GalleryComponent from './components/GalleryComponent/GalleryComponent.js';
+
+        /**
+         * MOCK DATA SOURCE (FULL)
+         * Implements all dataSource methods for complete testing.
+         */
+        const mockDataSource = {
+            _latency: 300,
+            _data: null,
+            _nextId: 100,
+
+            _initializeData() {
+                if (this._data) return;
+                this._data = {
+                    folders: [
+                        { id: 'f-nature', name: 'Nature' },
+                        { id: 'f-cities', name: 'Cities' },
+                        { id: 'f-abstract', name: 'Abstract' },
+                    ],
+                    items: {
+                        'f-nature': [
+                            { id: 1, name: 'Mountain.jpg', type: 'image', thumbUrl: 'https://placehold.co/300x300/6C8EBF/FFFFFF?text=Mountain', mediaUrl: 'https://placehold.co/1200x800/6C8EBF/FFFFFF?text=Mountain' },
+                            { id: 2, name: 'Ocean.png', type: 'image', thumbUrl: 'https://placehold.co/300x300/4F7CAC/FFFFFF?text=Ocean', mediaUrl: 'https://placehold.co/1200x800/4F7CAC/FFFFFF?text=Ocean' },
+                        ],
+                        'f-cities': [
+                            { id: 4, name: 'Skyscrapers.webp', type: 'image', thumbUrl: 'https://placehold.co/300x300/8E9EAB/FFFFFF?text=Sky', mediaUrl: 'https://placehold.co/1200x800/8E9EAB/FFFFFF?text=Sky' },
+                        ],
+                        'f-abstract': []
+                    }
+                };
+            },
+
+            onLoadFolders() {
+                console.log('[DataSource] onLoadFolders called');
+                this._initializeData();
+                return new Promise(resolve => setTimeout(() => resolve(this._data.folders), this._latency));
+            },
+
+            onLoadItems(folderId) {
+                console.log(`[DataSource] onLoadItems called for folder: ${folderId}`);
+                this._initializeData();
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const itemsToReturn = this._data.items[folderId];
+                        resolve(JSON.parse(JSON.stringify(itemsToReturn || [])));
+                    }, this._latency);
+                });
+            },
+
+            onRenameItem(itemId, newName, context) {
+                console.log(`[DataSource] onRenameItem called for item ${itemId} to "${newName}"`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const item = this._data.items[context.currentFolder.id].find(i => i.id === itemId);
+                        if (item) item.name = newName;
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onDeleteItem(itemIds, context) {
+                console.log(`[DataSource] onDeleteItem called for items:`, itemIds);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const folderItems = this._data.items[context.currentFolder.id];
+                        this._data.items[context.currentFolder.id] = folderItems.filter(item => !itemIds.includes(item.id));
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onMoveItem(itemIds, destinationFolderId, context) {
+                console.log(`[DataSource] onMoveItem called for items ${itemIds} to folder ${destinationFolderId}`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const itemsToMove = this._data.items[context.currentFolder.id].filter(item => itemIds.includes(item.id));
+                        this._data.items[context.currentFolder.id] = this._data.items[context.currentFolder.id].filter(item => !itemIds.includes(item.id));
+                        this._data.items[destinationFolderId].push(...itemsToMove);
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onCopyItem(itemIds, destinationFolderId, context) {
+                console.log(`[DataSource] onCopyItem called for items ${itemIds} to folder ${destinationFolderId}`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const itemsToCopy = this._data.items[context.currentFolder.id].filter(item => itemIds.includes(item.id));
+                        const newCopies = itemsToCopy.map(item => ({ ...item, id: this._nextId++ }));
+                        this._data.items[destinationFolderId].push(...newCopies);
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onCreateFolder(name) {
+                console.log(`[DataSource] onCreateFolder called with name: "${name}"`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const newFolderId = `f-${name.toLowerCase().replace(/\s+/g, '-')}-${this._nextId++}`;
+                        const newFolder = { id: newFolderId, name: name };
+                        this._data.folders.push(newFolder);
+                        this._data.items[newFolderId] = [];
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onRenameFolder(folderId, newName) {
+                console.log(`[DataSource] onRenameFolder called for folder ${folderId} to "${newName}"`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const folder = this._data.folders.find(f => f.id === folderId);
+                        if (folder) folder.name = newName;
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onDeleteFolder(folderId) {
+                console.log(`[DataSource] onDeleteFolder called for folder: ${folderId}`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        this._data.folders = this._data.folders.filter(f => f.id !== folderId);
+                        delete this._data.items[folderId];
+                        resolve();
+                    }, this._latency);
+                });
+            }
+        };
+
+        // --- App Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                console.log('Initializing GalleryComponent for FULL isolated test...');
+                
+                const gallery = new GalleryComponent('#gallery-container', {
+                    foldersAllowed: true,
+                    previewAllowed: true,
+                    gridOptions: {
+                        itemSize: 180,
+                        aspectRatio: '1:1',
+                        layout: {
+                            columns: 5 // Example: Force a 5-column layout
+                        }
+                    },
+                    dataSource: mockDataSource,
+                    plugins: []
+                });
+
+                // --- Theme Switcher Logic ---
+                const root = document.documentElement;
+                document.getElementById('theme-dark').addEventListener('click', () => {
+                    root.style.setProperty('--color-background-page', '#121212');
+                    root.style.setProperty('--color-background-component', '#2d2d2d');
+                    root.style.setProperty('--color-background-inset', '#222');
+                    root.style.setProperty('--color-text-primary', '#e0e0e0');
+                    root.style.setProperty('--color-text-secondary', '#999');
+                    root.style.setProperty('--color-border', '#444');
+                });
+
+                document.getElementById('theme-light').addEventListener('click', () => {
+                    root.style.setProperty('--color-background-page', '#f0f0f0');
+                    root.style.setProperty('--color-background-component', '#ffffff');
+                    root.style.setProperty('--color-background-inset', '#e9e9e9');
+                    root.style.setProperty('--color-text-primary', '#111111');
+                    root.style.setProperty('--color-text-secondary', '#555');
+                    root.style.setProperty('--color-border', '#cccccc');
+                });
+
+                // Load the theme variables initially so the page has a base style
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '/themes/dark-theme.css';
+                document.head.appendChild(link);
+
+            } catch (error) {
+                console.error('Failed to initialize GalleryComponent:', error);
+                document.getElementById('gallery-container').innerHTML = `<p style="color: red; padding: 2rem;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

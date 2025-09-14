@@ -1,0 +1,42 @@
+/* FILE: /tester/themes.css */
+/* VERSION: 1.0 */
+
+/*
+ * Defines the application-level color themes using semantic CSS variables.
+ * The default theme (:root) is our "standard" dark theme.
+*/
+
+:root,
+.theme-dark {
+  /* --- Main Palette --- */
+  --color-background: #121212; /* Deep dark for the main background */
+  --color-surface: #1e1e1e;    /* Lighter dark for cards, panels, modals */
+  --color-border: #333;       /* Subtle borders */
+
+  /* --- Accent Colors --- */
+  --color-primary: #3498db;       /* The main blue accent */
+  --color-primary-hover: #2980b9; /* A slightly darker blue for hover states */
+  --color-success: #27ae60;       /* Green for success or "edit" actions */
+  --color-danger: #c0392b;        /* Red for delete or warning actions */
+
+  /* --- Text Colors --- */
+  --color-text-primary: #e0e0e0;   /* Main text, almost white */
+  --color-text-secondary: #b0b0b0; /* Subtitles, labels, less important text */
+  --color-text-on-primary: #ffffff; /* Text on top of a primary color button */
+}
+
+/* --- Optional Light Theme --- */
+.theme-light {
+  --color-background: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-border: #dee2e6;
+
+  --color-primary: #1a73e8;
+  --color-primary-hover: #1662c1;
+  --color-success: #1e8449;
+  --color-danger: #d9534f;
+
+  --color-text-primary: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-on-primary: #ffffff;
+}

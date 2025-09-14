@@ -1,0 +1,14 @@
+{
+  "name": "gallery-component-v2",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "main": "build-component.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent V5 - Plugin Integration</title>
+    <link rel="stylesheet" href="/components/GalleryComponent/GalleryComponent.css">
+    <link rel="stylesheet" href="/components/GalleryComponent/plugins/ImportPlugin.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: #121212; }
+        #gallery-container { height: 100vh; width: 100vw; }
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center;
+            justify-content: center; color: white; z-index: 9999;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay">
+        <p>Connecting to server...</p>
+    </div>
+    <div id="gallery-container"></div>
+    
+    <script type="module">
+        import GalleryComponent from './components/GalleryComponent/GalleryComponent.js';
+        import ImportPlugin from './components/GalleryComponent/plugins/ImportPlugin.js';
+
+        const sessionId = `gallery-session_${Date.now()}`;
+        const WS_URL = 'ws://localhost:3222';
+
+        const requestManager = {
+            pendingRequests: new Map(),
+            waitForResponse(type) {
+                return new Promise((resolve, reject) => {
+                    const timeoutId = setTimeout(() => {
+                        this.pendingRequests.delete(type);
+                        reject(new Error(`Request for '${type}' timed out after 10 seconds.`));
+                    }, 10000);
+                    this.pendingRequests.set(type, { resolve, reject, timeoutId });
+                });
+            },
+            processMessage(message) {
+                const payload = message.payload;
+                if (!payload) return;
+                const resultType = payload.result?.type;
+                if (resultType && this.pendingRequests.has(resultType)) {
+                    const { resolve, timeoutId } = this.pendingRequests.get(resultType);
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete(resultType);
+                    resolve(payload.result.data);
+                    return;
+                }
+                if (payload.type === 'complete' && this.pendingRequests.has('gallery_refreshed')) {
+                    const { resolve, timeoutId } = this.pendingRequests.get('gallery_refreshed');
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete('gallery_refreshed');
+                    resolve();
+                    return;
+                }
+            }
+        };
+
+        function connectWebSocket() {
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket(WS_URL);
+                ws.onopen = () => { ws.send(JSON.stringify({ type: 'register', sessionId: sessionId })); };
+                ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    console.log('[WebSocket] Message received from server:', message);
+                    if (message.payload?.type === 'status' && message.payload?.message.includes('Conexión con el servidor establecida')) {
+                        resolve(); 
+                    } else {
+                        requestManager.processMessage(message);
+                    }
+                };
+                ws.onclose = () => { document.getElementById('loading-overlay').innerHTML = '<p>Connection Lost. Please refresh.</p>'; };
+                ws.onerror = (error) => reject(new Error("WebSocket connection failed."));
+            });
+        }
+
+        const apiHelper = {
+            API_BASE_URL: 'http://localhost:3222/api',
+            async _sendTask(macroName, params = {}) {
+                const body = { ...params, sessionId };
+                const response = await fetch(`${this.API_BASE_URL}/${macroName}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
+                return true;
+            }
+        };
+
+        async function main() {
+            try {
+                await connectWebSocket();
+                document.getElementById('loading-overlay').style.display = 'none';
+
+                new GalleryComponent('#gallery-container', {
+                    foldersAllowed: true,
+                    // --- PLUGIN REGISTRATION ---
+                    plugins: [
+                        new ImportPlugin({ buttonText: 'Import' })
+                    ],
+                    // --- DATA SOURCE ---
+                    dataSource: {
+                        async onUploadItem(fileData, folderId, context) {
+                            console.log(`[DataSource] Uploading file "${fileData.fileName}"`);
+                            return apiHelper._sendTask('add-to-gallery', {
+                                imageSource: fileData.data,
+                                fileName: fileData.fileName,
+                                UPLOAD_FOLDER: context.currentFolder.metadata.originalName,
+                                refreshGallery: true
+                            });
+                        },
+                        async onLoadFolders() {
+                            await apiHelper._sendTask('list-categories');
+                            const categories = await requestManager.waitForResponse('category_list');
+                            const folders = categories.map(cat => ({ id: cat.id, name: cat.title, metadata: { originalName: cat.name } }));
+                            this._internalFolders = folders;
+                            return folders;
+                        },
+                        async onCreateFolder(name) {
+                            await apiHelper._sendTask('create-category', { categoryName: name });
+                            await requestManager.waitForResponse('category_list_refreshed');
+                        },
+                        async onRenameFolder(folderId, newName) {
+                            await apiHelper._sendTask('rename-category', { categoryId: folderId, newCategoryName: newName });
+                            await requestManager.waitForResponse('category_list_refreshed');
+                        },
+                        async onDeleteFolder(folderId) {
+                            await apiHelper._sendTask('delete-category', { categoryId: folderId });
+                            await requestManager.waitForResponse('category_list_refreshed');
+                        },
+                        async onLoadItems(folderId) {
+                            if (!folderId) return [];
+                            const currentFolder = this._internalFolders.find(f => f.id == folderId);
+                            if (!currentFolder) return [];
+                            await apiHelper._sendTask('list-gallery-items', { GALLERY_FOLDER: currentFolder.metadata.originalName });
+                            const items = await requestManager.waitForResponse('gallery_list');
+                            return items.map(item => ({ id: item.id, name: item.name, thumbUrl: item.thumbUrl, mediaUrl: item.mediaPath, type: item.type, metadata: { ...item } }));
+                        },
+                        async onRenameItem(itemId, newName, context) {
+                            await apiHelper._sendTask('rename-media-item', { mediaId: itemId, newName: newName, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        async onDeleteItem(itemIds, context) {
+                            await apiHelper._sendTask('delete-multiple-items', { mediaIds: itemIds, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        async onMoveItem(itemIds, destinationFolderId, context) {
+                            await apiHelper._sendTask('move-multiple-items', { mediaIds: itemIds, targetCategoryId: destinationFolderId, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        async onCopyItem(itemIds, destinationFolderId, context) {
+                             await apiHelper._sendTask('copy-media-item', { mediaId: itemIds, targetCategoryId: destinationFolderId, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                             await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        _internalFolders: [],
+                    }
+                });
+            } catch (error) {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                loadingOverlay.innerHTML = `<p>Connection Failed: ${error.message}</p>`;
+                console.error("Initialization failed:", error);
+            }
+        }
+        
+        main();
+    </script>
+</body>
+</html>
+

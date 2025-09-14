@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backup archivo activo",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "backup.js",
+        "${file}"
+      ],
+      "options": {
+        "cwd": "C:/Users/Usuario/Documents/NODE-JS-PROYECTOS/scripts"
+      },
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ItemsGridComponent Test Page</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; font-family: sans-serif; }
+        .test-wrapper { display: flex; flex-direction: column; height: 100vh; }
+        .controls {
+            padding: 1rem;
+            background: var(--color-background-component);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .controls label { font-weight: bold; }
+        .controls input, .controls select, .controls button {
+            padding: 0.5rem;
+            background-color: var(--color-background-inset);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #grid-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: var(--color-background-page);
+        }
+        #log {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 300px;
+            height: 150px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="test-wrapper">
+        <div class="controls">
+            <button id="btn-remove">Remove First Item (Animate)</button>
+            <button id="btn-add">Add New Item</button>
+        </div>
+        <div id="grid-container"></div>
+    </div>
+
+    <div id="log"></div>
+
+    <script type="module">
+        import ItemsGridComponent from './ItemsGridComponent.js';
+
+        const logEl = document.getElementById('log');
+        function log(message) {
+            logEl.innerHTML += `> ${message}<br>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        let mockItems = [
+            { id: 1, name: 'Mountain.jpg', type: 'image', thumbUrl: 'https://placehold.co/300x300/6C8EBF/FFFFFF?text=Mountain' },
+            { id: 2, name: 'Ocean.png', type: 'image', thumbUrl: 'https://placehold.co/300x300/4F7CAC/FFFFFF?text=Ocean' },
+            { id: 4, name: 'Skyscrapers.webp', type: 'image', thumbUrl: 'https://placehold.co/300x300/8E9EAB/FFFFFF?text=Sky' },
+        ];
+        let nextId = 100;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('grid-container');
+            const grid = new ItemsGridComponent(gridContainer);
+            grid.setItems(mockItems);
+
+            // --- Event Listeners ---
+            gridContainer.addEventListener('itemClick', e => log(`itemClick: id=${e.detail.itemId}`));
+            gridContainer.addEventListener('actionClick', e => log(`actionClick: id=${e.detail.itemId}, action=${e.detail.action}`));
+
+            // --- Controls ---
+            document.getElementById('btn-remove').addEventListener('click', () => {
+                if (mockItems.length === 0) {
+                    log('No items to remove.');
+                    return;
+                }
+                const itemToRemove = mockItems[0];
+                const elementToRemove = grid.elements.grid.querySelector(`[data-item-id="${itemToRemove.id}"]`);
+
+                if (elementToRemove) {
+                    log(`Animating removal of item ${itemToRemove.id}...`);
+                    elementToRemove.classList.add('item-fade-out');
+                    elementToRemove.addEventListener('animationend', () => {
+                        log(`Animation ended. Updating data and re-rendering.`);
+                        mockItems.shift(); // Remove the first item from data
+                        grid.setItems(mockItems);
+                    }, { once: true });
+                }
+            });
+
+            document.getElementById('btn-add').addEventListener('click', () => {
+                const newItem = {
+                    id: nextId++,
+                    name: `New Item ${nextId}.jpg`,
+                    type: 'image',
+                    thumbUrl: `https://placehold.co/300x300/95a5a6/FFFFFF?text=New+${nextId}`
+                };
+                log(`Adding new item ${newItem.id}`);
+                mockItems.push(newItem);
+                grid.setItems(mockItems);
+            });
+        });
+    </script>
+
+</body>
+</html>

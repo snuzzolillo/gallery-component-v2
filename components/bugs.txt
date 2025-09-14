@@ -1,0 +1,183 @@
+1) CRUD. Copy  - El elemento copiado, no retorna la imagen en el preview. Revisando la interfaz original, el elemento copiado esta correctamente ubucado en el forlder esperado, y su preview es correcto.
+POSIBLE CAUSA. En caso de una imagen copiada, quizazas el metadado de la nueva imagen tiene otros valores.
+
+https://app.videoexpress.ai/library/copy_item/15349273
+POST payload categoryId=371797
+
+Response:{"success":true}
+
+Revision del item copiado
+https://app.videoexpress.ai/api/library/get_media/4?categoryId=371797&page=1&start=0&limit=20&query=&orderBy=id&orderDir=desc&filter=
+
+Response : {
+    "total": "9",
+    "results": [
+item copiado        
+        {
+            "id": 15383707,
+            "name": "Imagen copiada",
+            "fileName": "1757686082_68c42942afecf",
+            "workCopyFileName": "",
+            "datetime": {
+                "date": "2025-09-12 14:08:02.000000",
+                "timezone_type": 3,
+                "timezone": "UTC"
+            },
+            "duration": 0,
+            "frameRate": null,
+            "frameSize": "768x1366",
+            "userId": 27955,
+            "extension": "png",
+            "imageExtension": "",
+            "type": "image",
+            "libraryId": 4,
+            "size": 1602311,
+            "isPrivate": true,
+            "mediaInfo": [],
+            "thumbUrl": "https:\/\/cdn.videoexpress.ai\/thumbnail\/1757686082_68c42942afecf_small.jpg",
+            "brickThumbUrl": "library\/image\/image?src=1757686082_68c42942afecf\u0026isPrivate=1\u0026w=40\u0026h=40\u0026userId=27955\u0026ext=png\u0026fit=0",
+            "isAiGenerated": null,
+            "isHumanTalkingVideo": false,
+            "isShared": null,
+            "isPending": null,
+            "estimatedTimeSeconds": null,
+            "uuid": null,
+            "mediaPath": "https:\/\/cdn.videoexpress.ai\/image\/1743641424_67eddb50517fa.png",
+            "imagePath": null
+        },
+
+Item Original: {
+            "id": 15349273,
+            "name": "Imagen copiada",
+            "fileName": "1757629216_68c34b208e49b",
+            "workCopyFileName": "",
+            "datetime": {
+                "date": "2025-09-11 22:20:16.000000",
+                "timezone_type": 3,
+                "timezone": "UTC"
+            },
+            "duration": 0,
+            "frameRate": null,
+            "frameSize": "768x1366",
+            "userId": 27955,
+            "extension": "png",
+            "imageExtension": "",
+            "type": "image",
+            "libraryId": 4,
+            "size": 1602311,
+            "isPrivate": true,
+            "mediaInfo": [],
+            "thumbUrl": "https:\/\/cdn.videoexpress.ai\/thumbnail\/1757629216_68c34b208e49b_small.jpg",
+            "brickThumbUrl": "library\/image\/image?src=1757629216_68c34b208e49b\u0026isPrivate=1\u0026w=40\u0026h=40\u0026userId=27955\u0026ext=png\u0026fit=0",
+            "isAiGenerated": null,
+            "isHumanTalkingVideo": false,
+            "isShared": null,
+            "isPending": null,
+            "estimatedTimeSeconds": null,
+            "uuid": null,
+            "mediaPath": "https:\/\/cdn.videoexpress.ai\/image\/1743641424_67eddb50517fa.png",
+            "imagePath": null
+        },
+
+Gallery:
+Preview imagen copiada.    URL https://cdn.videoexpress.ai/image/1743641424_67eddb50517fa.png
+src="https://cdn.videoexpress.ai/image/1743641424_67eddb50517fa.png"
+VideoExpress
+Preview interfaz original. URL https://cdn.videoexpress.ai/image/1743641424_67eddb50517fa.png
+src="https://cdn.videoexpress.ai/image/1743641424_67eddb50517fa.png"
+
+La imagen copiada en Gallery: retorna 404
+
+Conclusion, Gallery genera 404
+Razones posible deteccion de si ek dominio connresponde a videoexpress.ai
+
+Otro item que si se rpresenta bien,pero no es via copy: https://cdn.videoexpress.ai/image/1755992747_68aa52ab77e7c.png
+header de la respuesta (correcta):
+HTTP/2 200 
+date: Fri, 12 Sep 2025 14:19:48 GMT
+content-type: image/png
+content-length: 444086
+server: BunnyCDN-MI1-974
+cdn-pullzone: 2804397
+cdn-uid: bab23723-a127-4491-9939-847e8549c8f9
+cdn-requestcountrycode: VE
+access-control-allow-origin: *
+access-control-allow-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+access-control-expose-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+cache-control: public, max-age=2592000
+last-modified: Sat, 23 Aug 2025 23:45:47 GMT
+cdn-storageserver: NY-833
+cdn-fileserver: 695
+cdn-proxyver: 1.34
+cdn-requestpullsuccess: True
+cdn-requestpullcode: 206
+cdn-cachedat: 09/12/2025 14:00:08
+cdn-edgestorageid: 975
+cdn-requestid: 023f2280b124b29c9a697966926713d6
+cdn-cache: HIT
+cdn-status: 200
+cdn-requesttime: 0
+accept-ranges: bytes
+X-Firefox-Spdy: h2
+
+header de la respuesta con 404
+HTTP/2 404 
+date: Fri, 12 Sep 2025 14:25:59 GMT
+content-type: text/html
+vary: Accept-Encoding
+server: BunnyCDN-MI1-1212
+cdn-pullzone: 2804397
+cdn-uid: bab23723-a127-4491-9939-847e8549c8f9
+cdn-requestcountrycode: VE
+access-control-allow-origin: *
+access-control-allow-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+access-control-expose-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+cache-control: no-cache
+cdn-storageserver: NY-703
+cdn-proxyver: 1.34
+cdn-requestpullsuccess: True
+cdn-requestpullcode: 404
+cdn-cachedat: 09/12/2025 14:25:59
+cdn-edgestorageid: 878
+cdn-requestid: 9770764d17939d76bb8b6c00f595b107
+cdn-cache: MISS
+cdn-status: 404
+cdn-requesttime: 0
+content-encoding: gzip
+X-Firefox-Spdy: h2
+
+posible solucion:
+Perfecto, Santos. Aquí tienes la lógica comprimida en texto explicativo, lista para documentar o implementar como parte de tu sistema:
+
+---
+
+### 🧠 Estrategia de resolución para previews de ítems copiados
+
+Cuando se solicita el preview de un ítem en el `Gallery`, se intentará primero acceder al recurso mediante su `mediaPath`. Si la solicitud devuelve un error (por ejemplo, 404), se asumirá que el ítem fue creado por el proceso de copia y que el CDN no lo ha propagado correctamente para entornos externos a `videoexpress.ai`.
+
+Para resolver este caso sin afectar el rendimiento global, se implementará un endpoint en el servidor que permita obtener el contenido del ítem en formato `base64`, exclusivamente cuando el `mediaPath` falle.
+
+---
+
+### 🔧 Flujo técnico resumido
+
+1. **Intento de carga por `mediaPath`**
+   - Si responde con `200 OK`, se muestra normalmente.
+   - Si responde con `404`, se activa el fallback.
+
+2. **Solicitud al endpoint personalizado**
+   - Se envía el `id` del ítem al servidor.
+   - El servidor recupera el archivo desde el backend autorizado y lo convierte a `base64`.
+
+3. **Renderizado condicional**
+   - Si se recibe el `base64`, se muestra como preview.
+   - Si no, se muestra un mensaje de error o imagen de respaldo.
+
+---
+
+### 🧩 Consideraciones clave
+
+- El uso de `base64` se limita solo a ítems cuyo `mediaPath` falla, evitando penalizaciones de rendimiento.
+- El endpoint debe validar que el ítem existe y que el usuario tiene permiso para visualizarlo.
+- Se recomienda cachear los resultados para evitar múltiples conversiones del mismo ítem.
+

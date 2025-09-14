@@ -1,0 +1,114 @@
+<!-- =============================================================== -->
+<!-- FILE: /index.html | VERSION: 1.0                              -->
+<!-- =============================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent Example</title>
+    <link rel="stylesheet" href="./components/GalleryComponent/GalleryComponent.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #121212;
+        }
+        #gallery-container {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gallery-container"></div>
+
+    <script src="./components/GalleryComponent/GalleryComponent.js"></script>
+    <script>
+        /**
+         * MOCK DATA SOURCE
+         * This object simulates a real backend API. It uses setTimeout to
+         * mimic network latency and stores data in a local variable.
+         */
+        const mockDataSource = {
+            _data: [
+                { id: 1, name: 'Mountain Vista', type: 'image', thumbUrl: 'https://placehold.co/300x300/3498db/ffffff?text=Mountain', mediaUrl: 'https://placehold.co/800x600/3498db/ffffff?text=Mountain' },
+                { id: 2, name: 'Ocean Waves', type: 'image', thumbUrl: 'https://placehold.co/300x300/2ecc71/ffffff?text=Ocean', mediaUrl: 'https://placehold.co/800x600/2ecc71/ffffff?text=Ocean' },
+                { id: 3, name: 'Forest Trail', type: 'image', thumbUrl: 'https://placehold.co/300x300/f1c40f/ffffff?text=Forest', mediaUrl: 'https://placehold.co/800x600/f1c40f/ffffff?text=Forest' },
+                { id: 4, name: 'City Lights', type: 'image', thumbUrl: 'https://placehold.co/300x300/e74c3c/ffffff?text=City', mediaUrl: 'https://placehold.co/800x600/e74c3c/ffffff?text=City' },
+                { id: 5, name: 'Desert Dunes', type: 'image', thumbUrl: 'https://placehold.co/300x300/9b59b6/ffffff?text=Desert', mediaUrl: 'https://placehold.co/800x600/9b59b6/ffffff?text=Desert' },
+                { id: 6, name: 'Winter Snow', type: 'image', thumbUrl: 'https://placehold.co/300x300/1abc9c/ffffff?text=Snow', mediaUrl: 'https://placehold.co/800x600/1abc9c/ffffff?text=Snow' },
+                 { id: 7, name: 'Abstract Art', type: 'image', thumbUrl: 'https://placehold.co/300x300/d35400/ffffff?text=Art', mediaUrl: 'https://placehold.co/800x600/d35400/ffffff?text=Art' },
+                { id: 8, name: 'Tech Gadgets', type: 'image', thumbUrl: 'https://placehold.co/300x300/2c3e50/ffffff?text=Tech', mediaUrl: 'https://placehold.co/800x600/2c3e50/ffffff?text=Tech' },
+            ],
+            _latency: 500, // ms
+
+            // --- The "contract" methods the component expects ---
+
+            load() {
+                console.log('[DataSource] Loading items...');
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        console.log('[DataSource] Items loaded:', this._data);
+                        resolve([...this._data]); // Return a copy
+                    }, this._latency);
+                });
+            },
+
+            renameItem(id, newName) {
+                console.log(`[DataSource] Renaming item ${id} to "${newName}"`);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const item = this._data.find(i => i.id === id);
+                        if (item) item.name = newName;
+                        console.log('[DataSource] Rename complete.');
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            deleteItems(ids) {
+                console.log(`[DataSource] Deleting items:`, ids);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        this._data = this._data.filter(item => !ids.includes(item.id));
+                        console.log('[DataSource] Deletion complete.');
+                        resolve();
+                    }, this._latency);
+                });
+            }
+        };
+
+        // --- Component Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const galleryContainer = document.querySelector('#gallery-container');
+                
+                // 1. Create a new instance of the component
+                const myGallery = new GalleryComponent('#gallery-container', {
+                    dataSource: mockDataSource
+                });
+
+                // 2. Load the initial data
+                myGallery.load();
+
+                // 3. (Optional) Listen to events from the component
+                galleryContainer.addEventListener('selectionChanged', (event) => {
+                    const selectedItems = event.detail.selectedItems;
+                    console.log('EVENT: Selection changed. Items selected:', selectedItems.length, selectedItems);
+                });
+                
+                galleryContainer.addEventListener('itemDoubleClick', (event) => {
+                    console.log('EVENT: Item double-clicked:', event.detail.item);
+                });
+
+            } catch (error) {
+                console.error('Failed to initialize GalleryComponent:', error);
+                document.getElementById('gallery-container').innerHTML = `<p style="color: red; padding: 2rem;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

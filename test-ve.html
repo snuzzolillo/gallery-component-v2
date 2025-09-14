@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent - VideoExpress Integration (Complete)</title>
+    <link rel="stylesheet" href="/components/GalleryComponent/GalleryComponent.css">
+    <link rel="stylesheet" href="/components/GalleryComponent/plugins/ImportPlugin.css">
+    <link rel="stylesheet" href="/components/GalleryComponent/plugins/GenerationPlugin.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: #121212; }
+        #gallery-container { height: 100vh; width: 100vw; }
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center;
+            justify-content: center; color: white; z-index: 9999;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay"><p>Connecting to VideoExpress Server...</p></div>
+    <div id="gallery-container"></div>
+    
+    <script type="module">
+        import GalleryComponent from './components/GalleryComponent/GalleryComponent.js';
+        import ImportPlugin from './components/GalleryComponent/plugins/ImportPlugin.js';
+        import GenerationPlugin from './components/GalleryComponent/plugins/GenerationPlugin.js';
+
+        const sessionId = `gallery-session_${Date.now()}`;
+        const WS_URL = 'ws://localhost:3222';
+        
+        let galleryInstance = null;
+
+        const requestManager = {
+            pendingRequests: new Map(),
+            waitForResponse(type) {
+                return new Promise((resolve, reject) => {
+                    const timeoutId = setTimeout(() => {
+                        this.pendingRequests.delete(type);
+                        reject(new Error(`Request for '${type}' timed out after 10 seconds.`));
+                    }, 10000);
+                    this.pendingRequests.set(type, { resolve, reject, timeoutId });
+                });
+            },
+            processMessage(message) {
+                const payload = message.payload;
+                if (!payload) return;
+
+                const resultType = payload.result?.type;
+                if (resultType && this.pendingRequests.has(resultType)) {
+                    const { resolve, timeoutId } = this.pendingRequests.get(resultType);
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete(resultType);
+                    resolve(payload.result.data);
+                    return;
+                }
+
+                if ((payload.type === 'complete' || payload.type === 'gallery_refreshed') && this.pendingRequests.has('gallery_refreshed')) {
+                    const { resolve, timeoutId } = this.pendingRequests.get('gallery_refreshed');
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete('gallery_refreshed');
+                    resolve();
+                    return;
+                }
+                
+                if ((payload.type === 'complete' || payload.type === 'category_list_refreshed') && this.pendingRequests.has('category_list_refreshed')) {
+                    const { resolve, timeoutId } = this.pendingRequests.get('category_list_refreshed');
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete('category_list_refreshed');
+                    resolve();
+                    return;
+                }
+
+                // Handle generic "complete" messages for actions that trigger a refresh
+                if ((payload.type === 'complete' || payload.type === 'gallery_refreshed') && this.pendingRequests.has('gallery_refreshed')) {
+                    const { resolve, timeoutId } = this.pendingRequests.get('gallery_refreshed');
+                    clearTimeout(timeoutId);
+                    this.pendingRequests.delete('gallery_refreshed');
+                    resolve();
+                }
+            }
+        };
+        
+        const taskTracker = {
+            activeTasks: new Map(),
+            startTracking(itemId, taskId) {
+                if (!itemId || !taskId) return;
+                console.log(`[TaskTracker] Tracking taskId ${taskId} for itemId ${itemId}`);
+                this.activeTasks.set(taskId, itemId);
+            },
+            getItemId(taskId) {
+                return this.activeTasks.get(taskId);
+            },
+            stopTracking(taskId) {
+                this.activeTasks.delete(taskId);
+            }
+        };
+
+        function connectWebSocket() {
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket(WS_URL);
+                ws.onopen = () => ws.send(JSON.stringify({ type: 'register', sessionId: sessionId }));
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        console.log('[WebSocket] Message received:', message);
+
+                        if (message.payload?.type === 'status' && message.payload?.message.includes('Conexión con el servidor establecida')) {
+                            console.log('[WebSocket] Session confirmed by ve-services.');
+                            resolve();
+                        } else if (message.payload?.type === 'task_updated' && galleryInstance) {
+                            // ============================ THE FIX ============================
+                            // The server sends both a taskId and a uuid. The uuid is the stable
+                            // identifier for the generation task that we get from the item's metadata.
+                            const { uuid, status, progress, message: progressMessage } = message.payload;
+                            const itemId = taskTracker.getItemId(uuid); // Use uuid to look up the item
+                            // ===============================================================
+                            if (itemId) {
+                                galleryInstance.notify('taskUpdate', { id: itemId, status: status, progress: progress?.percentage, message: progressMessage });
+                                if (status === 'complete' || status === 'error') {
+                                    taskTracker.stopTracking(uuid); // Stop tracking by uuid
+                                }
+                            }
+                        } else {
+                            requestManager.processMessage(message);
+                        }
+                    } catch (e) {
+                         console.warn("Received a non-JSON WebSocket message. Ignoring.", event.data);
+                    }
+                };
+                ws.onclose = () => { document.getElementById('loading-overlay').innerHTML = '<p>Connection Lost. Please refresh.</p>'; };
+                ws.onerror = (error) => reject(new Error("WebSocket connection failed."));
+            });
+        }
+        
+        const apiHelper = {
+            API_BASE_URL: 'http://localhost:3222/api',
+            async _sendTask(macroName, params = {}, returnFullResponse = false) {
+                const body = { ...params, sessionId };
+                const response = await fetch(`${this.API_BASE_URL}/${macroName}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
+                return returnFullResponse ? await response.json() : true;
+            }
+        };
+
+        async function main() {
+            try {
+                await connectWebSocket();
+                document.getElementById('loading-overlay').style.display = 'none';
+
+                galleryInstance = new GalleryComponent('#gallery-container', {
+                    foldersAllowed: true,
+                    gridOptions: {
+                        aspectRatio: '16:9', // Set the grid items to a widescreen aspect ratio
+                        itemSize: 200
+                    },
+                    plugins: [
+                        new ImportPlugin({ buttonText: 'Upload' }),
+                        new GenerationPlugin({
+                            modes: [{
+                                name: 'videoFromImage',
+                                buttonText: '🎬 Generate Video',
+                                selectionRule: 'single-image',
+                                dataSourceMethod: 'onStartVideoGeneration',
+                                modalFields: [
+                                    { name: 'prompt', label: 'Prompt', type: 'textarea' },
+                                    { name: 'style', label: 'Style', type: 'select', options: [
+                                        { value: 'human', text: 'Human' }, { value: '2d', text: '2D' }, { value: '3d', text: '3D' }
+                                    ]}
+                                ]
+                            }]
+                        })
+                    ],
+                    dataSource: {
+                        // =======================================================================
+                        // DATA SOURCE IMPLEMENTATION (DIDACTIC EXAMPLE)
+                        // -----------------------------------------------------------------------
+                        // This object is the "bridge" between the generic GalleryComponent and
+                        // a specific backend (in this case, VideoExpress services).
+                        // It fulfills the contract required by the component.
+                        // =======================================================================
+                        async onStartVideoGeneration(selectedItems, formData, context) {
+                            const sourceItem = selectedItems[0];
+                            const response = await apiHelper._sendTask('image-to-video', {
+                                imageSource: sourceItem.id,
+                                PROMPT: formData.prompt, STYLE: formData.style,
+                                UPLOAD_FOLDER: 'my_ai_videos'
+                            }, true);
+                           
+                            galleryInstance._showNotification('Video generation started. Check the "My AI Videos" folder for progress.', 'success');
+                        },
+                        onStartTracking(item) {
+                            const taskId = item.metadata?.uuid;
+                            if (item.isPending && taskId) {
+                                console.log(`[DataSource] Found pending item ${item.id}, requesting tracking for taskId ${taskId}`);
+                                apiHelper._sendTask('track-task', { uuid: taskId });
+                                taskTracker.startTracking(item.id, taskId);
+                            }
+                        },
+                        /**
+                         * Called when the ImportPlugin uploads a file.
+                         * @param {object} fileData - Contains fileName and base64 data.
+                         * @param {number} folderId - The ID of the folder to upload to.
+                         * @param {object} context - Context object, contains currentFolder.
+                         */
+                        async onUploadItem(fileData, folderId, context) {
+                            await apiHelper._sendTask('add-to-gallery', { imageSource: fileData.data, fileName: fileData.fileName, UPLOAD_FOLDER: context.currentFolder.metadata.originalName, refreshGallery: true });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        /**
+                         * Called by the component to get the list of all available folders.
+                         * @returns {Promise<Array<object>>} A promise that resolves to an array of folder objects.
+                         * Each folder must have at least 'id' and 'name'.
+                         */
+                        async onLoadFolders() {
+                            await apiHelper._sendTask('list-categories');
+                            const categories = await requestManager.waitForResponse('category_list');
+                            const folders = categories.map(cat => ({ id: cat.id, name: cat.title, metadata: { originalName: cat.name } }));
+                            this._internalFolders = folders;
+                            return folders;
+                        },
+                        /**
+                         * Called when the user creates a new folder.
+                         * @param {string} name - The desired name for the new folder.
+                         */
+                        async onCreateFolder(name) {
+                            await apiHelper._sendTask('create-category', { categoryName: name });
+                            await requestManager.waitForResponse('category_list_refreshed');
+                        },
+                        /**
+                         * Called when the user renames a folder.
+                         * @param {number} folderId - The ID of the folder to rename.
+                         * @param {string} newName - The new name for the folder.
+                         */
+                        async onRenameFolder(folderId, newName) {
+                            await apiHelper._sendTask('rename-category', { categoryId: folderId, newCategoryName: newName });
+                            await requestManager.waitForResponse('category_list_refreshed');
+                        },
+                        /**
+                         * Called when the user deletes a folder.
+                         * @param {number} folderId - The ID of the folder to delete.
+                         */
+                        async onDeleteFolder(folderId) {
+                            await apiHelper._sendTask('delete-category', { categoryId: folderId });
+                            await requestManager.waitForResponse('category_list_refreshed');
+                        },
+                        /**
+                         * Called by the component to get the items for a specific folder.
+                         * @param {number} folderId - The ID of the folder whose items are to be loaded.
+                         * @returns {Promise<Array<object>>} A promise that resolves to an array of item objects.
+                         * Each item must have 'id', 'name', 'thumbUrl', 'mediaUrl', and 'type'.
+                         */
+                        async onLoadItems(folderId) {
+                            if (!folderId) return [];
+                            const currentFolder = this._internalFolders.find(f => f.id == folderId);
+                            if (!currentFolder) return [];
+                            await apiHelper._sendTask('list-gallery-items', { GALLERY_FOLDER: currentFolder.metadata.originalName });
+                            const items = await requestManager.waitForResponse('gallery_list');
+                            // Adapt the data from the server to the format the component expects.
+                            return items.map(item => ({
+                                id: item.id, name: item.name, thumbUrl: item.thumbUrl,
+                                mediaUrl: item.mediaPath, type: item.type,
+                                isPending: item.isPending,
+                                metadata: { ...item } // Store original data for plugins or other uses.
+                            }));
+                        },
+                        /**
+                         * Called when the user renames a single item.
+                         * @param {number} itemId - The ID of the item to rename.
+                         * @param {string} newName - The new name for the item.
+                         * @param {object} context - Context object, contains currentFolder.
+                         */
+                        async onRenameItem(itemId, newName, context) {
+                            await apiHelper._sendTask('rename-media-item', { mediaId: itemId, newName: newName, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        /**
+                         * Called when the user deletes one or more items.
+                         * @param {Array<number>} itemIds - An array of IDs of the items to delete.
+                         * @param {object} context - Context object, contains currentFolder.
+                         */
+                        async onDeleteItem(itemIds, context) {
+                            // This backend endpoint supports multiple IDs, so we can pass the array directly.
+                            await apiHelper._sendTask('delete-multiple-items', { mediaIds: itemIds, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        /**
+                         * Called when the user moves one or more items to another folder.
+                         * @param {Array<number>} itemIds - An array of IDs of the items to move.
+                         * @param {number} destinationFolderId - The ID of the target folder.
+                         * @param {object} context - Context object, contains currentFolder.
+                         */
+                        async onMoveItem(itemIds, destinationFolderId, context) {
+                            // This backend endpoint supports multiple IDs.
+                            await apiHelper._sendTask('move-multiple-items', { mediaIds: itemIds, targetCategoryId: destinationFolderId, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        /**
+                         * Called when the user copies one or more items to another folder.
+                         * @param {Array<number>} itemIds - An array of IDs of the items to copy.
+                         * @param {number} destinationFolderId - The ID of the target folder.
+                         * @param {object} context - Context object, contains currentFolder.
+                         */
+                        async onCopyItem(itemIds, destinationFolderId, context) {
+                            // CORRECTED: This backend endpoint only supports one ID at a time.
+                            // We must loop through the array and send a request for each item.
+                            for (const mediaId of itemIds) {
+                                await apiHelper._sendTask('copy-media-item', { mediaId: mediaId, targetCategoryId: destinationFolderId, GALLERY_FOLDER: context.currentFolder.metadata.originalName });
+                            }
+                            // After all copy tasks are sent, wait for the final gallery refresh confirmation.
+                            await requestManager.waitForResponse('gallery_refreshed');
+                        },
+                        _internalFolders: [],
+                    }
+                });
+            } catch (error) {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                loadingOverlay.innerHTML = `<p>Connection Failed: ${error.message}</p>`;
+                console.error("Initialization failed:", error);
+            }
+        }
+        
+        main();
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent - Perchance Integration (Final)</title>
+    <link rel="stylesheet" href="/components/GalleryComponent/GalleryComponent.css">
+    <link rel="stylesheet" href="/components/GalleryComponent/plugins/GenerationPlugin.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: #121212; }
+        #gallery-container { height: 100vh; width: 100vw; }
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center;
+            justify-content: center; color: white; z-index: 9999;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay"><p>Loading Perchance Gallery...</p></div>
+    <div id="gallery-container"></div>
+    
+    <script type="module">
+        import GalleryComponent from './components/GalleryComponent/GalleryComponent.js';
+        import GenerationPlugin from './components/GalleryComponent/plugins/GenerationPlugin.js';
+
+        let galleryInstance = null;
+        let currentGenerationId = null;
+        const sessionId = `perchance-session_${Date.now()}`;
+
+        const perchanceApiHelper = {
+            API_BASE_URL: 'http://localhost:3000/api',
+            
+            async fetchData(endpoint) {
+                const response = await fetch(`${this.API_BASE_URL}/${endpoint}`);
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                return await response.json();
+            },
+
+            async deleteEntry(entryId) {
+                const response = await fetch(`${this.API_BASE_URL}/data-entry`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        file: 'autosave', 
+                        category: 'autoSaveHistory', 
+                        key: entryId 
+                    })
+                });
+                return response.ok;
+            },
+
+            async launchPerchance(payload) {
+                const fullPayload = { ...payload, sessionId };
+                const response = await fetch(`${this.API_BASE_URL}/launch-perchance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fullPayload)
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Failed to send launch command.');
+                }
+                return await response.json();
+            }
+        };
+        
+        const ws = new WebSocket('ws://localhost:3000');
+        ws.onopen = () => {
+            console.log('[WebSocket] Connected to AI_TOOLS server.');
+            ws.send(JSON.stringify({ type: 'register', clientType: 'frontend', sessionId: sessionId }));
+        };
+        ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                console.log('[WebSocket] Message received:', message);
+
+                if (!galleryInstance || !currentGenerationId) return;
+
+                if (message.type === 'image') {
+                    const newItem = {
+                        id: `perchance_${message.hash || Date.now()}`,
+                        name: `Generated: ${message.prompt ? message.prompt.substring(0, 30) + '...' : 'Untitled'}`,
+                        thumbUrl: message.data, // Base64 data
+                        mediaUrl: message.data,
+                        type: 'image',
+                        metadata: { source: 'perchance', prompt: message.prompt }
+                    };
+                    galleryInstance.notify('taskProgress', {
+                        generationId: currentGenerationId,
+                        itemData: newItem
+                    });
+                }
+                
+                if (message.type === 'status' && message.message.includes('Closing browser')) {
+                     galleryInstance.notify('taskEnd', {
+                        generationId: currentGenerationId,
+                        message: 'Perchance generation complete.'
+                    });
+                    currentGenerationId = null;
+                }
+            } catch (e) {
+                console.warn("Received a non-JSON WebSocket message, likely a server fallback. Ignoring.", event.data);
+            }
+        };
+
+        async function main() {
+            try {
+                galleryInstance = new GalleryComponent('#gallery-container', {
+                    foldersAllowed: false, 
+                    plugins: [
+                        new GenerationPlugin({
+                            modes: [{
+                                name: 'perchanceGeneration',
+                                buttonText: '🎨 Generate (Perchance)',
+                                selectionRule: 'none',
+                                dataSourceMethod: 'onStartPerchanceGeneration',
+                                modalFields: [
+                                    { name: 'prompt', label: 'Prompt', type: 'textarea', rows: 4 },
+                                    { name: 'quantity', label: 'Number of Images', type: 'number', defaultValue: 4, min: 1, max: 20 },
+                                    { name: 'aspectRatio', label: 'Aspect Ratio', type: 'select', 
+                                      options: [
+                                        { value: '1:1', text: '1:1 (Square)' },
+                                        { value: '16:9', text: '16:9 (Widescreen)' },
+                                        { value: '9:16', text: '9:16 (Portrait)' }
+                                      ] 
+                                    }
+                                ]
+                            }]
+                        })
+                    ],
+                    dataSource: {
+                        async onLoadItems(folderId) {
+                            console.log("[DataSource] Loading Perchance history...");
+                            const allData = await perchanceApiHelper.fetchData('all-data');
+                            const history = allData?.auto?.autoSaveHistory || [];
+                            
+                            const perchanceItems = history.filter(item => item.type === 'perchance-generator');
+                            
+                            const truncate = (text, maxLength = 60) => {
+                                if (!text) return 'Untitled';
+                                if (text.length <= maxLength) return text;
+                                return text.substring(0, maxLength) + '...';
+                            };
+                            
+                            return perchanceItems.map(item => ({
+                                id: Number(item.id), 
+                                name: truncate(item.prompt),
+                                thumbUrl: `data:image/jpeg;base64,${item.imageBase64}`,
+                                mediaUrl: `data:image/jpeg;base64,${item.imageBase64}`,
+                                type: 'image',
+                                metadata: { ...item }
+                            }));
+                        },
+                        async onDeleteItem(itemIds) {
+                            console.log(`[DataSource] Deleting Perchance items:`, itemIds);
+                            const deletePromises = itemIds.map(id => perchanceApiHelper.deleteEntry(Number(id)));
+                            const results = await Promise.all(deletePromises);
+                            
+                            if (results.some(res => !res)) {
+                                throw new Error("Some items could not be deleted.");
+                            }
+                        },
+
+                        onStartTracking(item) {
+                            console.log(`[DataSource] Received request to track existing pending item:`, item);
+                        },
+
+                        async onStartPerchanceGeneration(selectedItems, formData) {
+                            console.log('[DataSource] Starting Perchance generation with:', formData);
+                            
+                            currentGenerationId = `perchance_${Date.now()}`;
+                            galleryInstance.notify('taskStart', {
+                                generationId: currentGenerationId,
+                                totalItems: formData.quantity,
+                                targetFolderId: null
+                            });
+
+                            try {
+                                await perchanceApiHelper.launchPerchance({
+                                    prompt: formData.prompt,
+                                    count: formData.quantity,
+                                    aspect: formData.aspectRatio
+                                });
+                            } catch (error) {
+                                galleryInstance.notify('taskError', {
+                                    generationId: currentGenerationId,
+                                    message: error.message
+                                });
+                                currentGenerationId = null;
+                                throw error;
+                            }
+                        }
+                    }
+                });
+
+                galleryInstance.setTitle('Perchance Generations');
+                document.getElementById('loading-overlay').style.display = 'none';
+
+            } catch (error) {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                loadingOverlay.innerHTML = `<p>Failed to load: ${error.message}</p>`;
+                console.error("Initialization failed:", error);
+            }
+        }
+        
+        main();
+    </script>
+</body>
+</html>
+

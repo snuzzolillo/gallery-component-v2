@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent - Core Features</title>
+    <link rel="stylesheet" href="/components/GalleryComponent/GalleryComponent.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .app-container {
+            display: flex;
+            height: 100vh;
+            transition: padding-left 0.3s ease-in-out;
+        }
+        .app-container.panel-collapsed {
+            padding-left: 0;
+        }
+        .folder-panel {
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            flex-shrink: 0;
+            background-color: #242424;
+            border-right: 1px solid #3f3f3f;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+            z-index: 10;
+        }
+        .app-container.panel-collapsed .folder-panel {
+            transform: translateX(-100%);
+        }
+        .folder-panel h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #3f3f3f;
+            padding-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .folder-list { list-style: none; padding: 0; margin: 0; }
+        .folder-item { padding: 0.75rem 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0.5rem; transition: background-color 0.2s; }
+        .folder-item:hover { background-color: #333; }
+        .folder-item.active { background-color: #3498db; color: white; }
+        
+        .main-content {
+            flex-grow: 1;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease-in-out;
+            margin-left: 250px;
+        }
+        .app-container.panel-collapsed .main-content {
+            margin-left: 0;
+        }
+
+        .app-header {
+            padding: 0.75rem 1rem;
+            background-color: #242424;
+            border-bottom: 1px solid #3f3f3f;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-panel-btn {
+            font-size: 1.5rem; background: none; border: none; color: #e0e0e0; cursor: pointer; margin-right: 1rem;
+        }
+        .gallery-wrapper {
+            flex-grow: 1;
+            position: relative;
+        }
+        #gallery-component-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-container">
+        <div class="folder-panel" id="folder-panel" style="display: none;">
+            <h2>
+                <span>Folders</span>
+                <button class="toggle-panel-btn" id="toggle-panel-btn-inside">‹</button>
+            </h2>
+            <ul class="folder-list" id="folder-list"></ul>
+        </div>
+        <div class="main-content" id="main-content">
+            <div class="app-header">
+                <button class="toggle-panel-btn" id="toggle-panel-btn-outside">☰</button>
+                <h3>Gallery Component Demo</h3>
+            </div>
+            <div class="gallery-wrapper">
+                <div id="gallery-component-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import GalleryComponent from './components/GalleryComponent/GalleryComponent.js';
+
+        // --- Mock Data Source ---
+        const mockDataSource = {
+            _latency: 500,
+            _data: null,
+            _nextId: 10,
+
+            _initializeData() {
+                this._data = {
+                    folders: [
+                        { id: 'nature', name: 'Nature & Landscapes' },
+                        { id: 'cities', name: 'Urban Explorations' },
+                        { id: 'abstract', name: 'Abstract Art' }
+                    ],
+                    items: {
+                        'nature': [
+                            { id: 1, name: 'Mountain Peak.jpg', thumbUrl: 'https://placehold.co/300x300/6C8EBF/FFFFFF?text=Mountain', mediaUrl: 'https://placehold.co/1200x800/6C8EBF/FFFFFF?text=Mountain', type: 'image' },
+                            { id: 2, name: 'Ocean Waves.png', thumbUrl: 'https://placehold.co/300x300/4F7CAC/FFFFFF?text=Ocean', mediaUrl: 'https://placehold.co/1200x800/4F7CAC/FFFFFF?text=Ocean', type: 'image' },
+                            { id: 3, name: 'Forest Trail.gif', thumbUrl: 'https://placehold.co/300x300/3A5F0B/FFFFFF?text=Forest', mediaUrl: 'https://placehold.co/1200x800/3A5F0B/FFFFFF?text=Forest', type: 'image' },
+                        ],
+                        'cities': [
+                            { id: 4, name: 'City at Night.jpg', thumbUrl: 'https://placehold.co/300x300/2C3E50/FFFFFF?text=City', mediaUrl: 'https://placehold.co/1200x800/2C3E50/FFFFFF?text=City', type: 'image' },
+                            { id: 5, name: 'Skyscrapers.webp', thumbUrl: 'https://placehold.co/300x300/8E9EAB/FFFFFF?text=Sky', mediaUrl: 'https://placehold.co/1200x800/8E9EAB/FFFFFF?text=Sky', type: 'image' },
+                        ],
+                        'abstract': [
+                            { id: 6, name: 'Colorful Shapes', thumbUrl: 'https://placehold.co/300x300/E74C3C/FFFFFF?text=Art', mediaUrl: 'https://placehold.co/1200x800/E74C3C/FFFFFF?text=Art', type: 'image' },
+                        ],
+                    }
+                };
+            },
+
+            onLoadFolders() {
+                if (!this._data) this._initializeData();
+                return new Promise(resolve => setTimeout(() => resolve(this._data.folders), this._latency / 2));
+            },
+
+            onLoadItems(folderId) {
+                if (!this._data) this._initializeData();
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const itemsToReturn = this._data.items[folderId];
+                        resolve(JSON.parse(JSON.stringify(itemsToReturn || [])));
+                    }, this._latency);
+                });
+            },
+
+            onRename(id, newName) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        for (const key in this._data.items) {
+                            const item = this._data.items[key].find(i => i.id === id);
+                            if (item) {
+                                const oldName = item.name;
+                                const extensionMatch = oldName.match(/\.([a-zA-Z0-9]+)$/);
+                                if (extensionMatch) {
+                                    const oldExtension = extensionMatch[0]; // e.g., ".jpg"
+                                    if (!newName.endsWith(oldExtension)) {
+                                        newName += oldExtension;
+                                    }
+                                }
+                                item.name = newName;
+                                resolve();
+                                return;
+                            }
+                        }
+                        reject(new Error('Item not found.'));
+                    }, this._latency);
+                });
+            },
+            
+            onDelete(ids) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        for (const key in this._data.items) {
+                            this._data.items[key] = this._data.items[key].filter(item => !ids.includes(item.id));
+                        }
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onMove(itemIds, destinationFolderId) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const itemsToMove = [];
+                        // Find and remove items from source folders
+                        for (const key in this._data.items) {
+                            const foundItems = this._data.items[key].filter(item => itemIds.includes(item.id));
+                            itemsToMove.push(...foundItems);
+                            this._data.items[key] = this._data.items[key].filter(item => !itemIds.includes(item.id));
+                        }
+                        // Add items to destination folder
+                        this._data.items[destinationFolderId].push(...itemsToMove);
+                        resolve();
+                    }, this._latency);
+                });
+            },
+
+            onCopy(itemIds, destinationFolderId) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const itemsToCopy = [];
+                        // Find items from source folders
+                        for (const key in this._data.items) {
+                            const foundItems = this._data.items[key].filter(item => itemIds.includes(item.id));
+                            itemsToCopy.push(...foundItems);
+                        }
+                        // Clone and add items to destination folder
+                        const newCopies = itemsToCopy.map(item => {
+                            const newItem = { ...item, id: this._nextId++ };
+                            // Handle name conflicts
+                            let newName = newItem.name;
+                            const existingNames = this._data.items[destinationFolderId].map(i => i.name);
+                            if (existingNames.includes(newName)) {
+                                const nameParts = newName.split('.');
+                                const ext = nameParts.pop();
+                                const base = nameParts.join('.');
+                                newName = `${base} (copy).${ext}`;
+                            }
+                             newItem.name = newName;
+                            return newItem;
+                        });
+                        this._data.items[destinationFolderId].push(...newCopies);
+                        resolve();
+                    }, this._latency);
+                });
+            }
+        };
+
+        // --- App Orchestrator ---
+        async function initializeApp() {
+            const gallery = new GalleryComponent('#gallery-component-container', {
+                dataSource: mockDataSource
+            });
+
+            const appContainer = document.getElementById('app-container');
+            const folderPanel = document.getElementById('folder-panel');
+            const folderList = document.getElementById('folder-list');
+            const toggleButtons = document.querySelectorAll('.toggle-panel-btn');
+
+            let folders = await mockDataSource.onLoadFolders();
+
+            if (folders && folders.length > 0) {
+                folderPanel.style.display = 'block';
+                
+                folders.forEach(folder => {
+                    const li = document.createElement('li');
+                    li.className = 'folder-item';
+                    li.textContent = folder.name;
+                    li.dataset.folderId = folder.id;
+                    folderList.appendChild(li);
+                });
+                
+                folderList.addEventListener('click', (e) => {
+                    const folderItem = e.target.closest('.folder-item');
+                    if (!folderItem || folderItem.classList.contains('active')) return;
+
+                    const folderId = folderItem.dataset.folderId;
+                    const folder = folders.find(f => f.id === folderId);
+                    
+                    folderList.querySelector('.active')?.classList.remove('active');
+                    folderItem.classList.add('active');
+                    
+                    gallery.setTitle(folder.name);
+                    gallery.load(folder.id);
+                });
+
+                const firstFolder = folders[0];
+                folderList.querySelector(`[data-folder-id="${firstFolder.id}"]`).classList.add('active');
+                gallery.setTitle(firstFolder.name);
+                await gallery.load(firstFolder.id);
+
+            } else {
+                document.getElementById('main-content').style.marginLeft = '0';
+                gallery.setTitle('My Gallery');
+                await gallery.load(null);
+            }
+
+            toggleButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    appContainer.classList.toggle('panel-collapsed');
+                });
+            });
+        }
+
+        initializeApp();
+
+    </script>
+</body>
+</html>
+

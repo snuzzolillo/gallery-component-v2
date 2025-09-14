@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NavigationListComponent Test</title>
+    <link rel="stylesheet" href="/themes/dark-theme.css">
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--color-background-page);
+            color: var(--color-text-primary);
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .test-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .panel-container {
+            width: 300px;
+            background-color: var(--color-background-component);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .panel-container h3 {
+            margin-top: 0;
+        }
+        .horizontal-container {
+            width: 600px;
+            background-color: var(--color-background-component);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .test-controls {
+            flex-grow: 1;
+        }
+        #log {
+            width: 400px;
+            height: 80vh;
+            background: #111;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            background-color: var(--color-button-secondary-bg);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="test-column">
+        <div id="vertical-nav-container" class="panel-container">
+            <h3>Vertical NavigationList</h3>
+        </div>
+        <div id="horizontal-nav-container" class="horizontal-container">
+            <h3>Horizontal NavigationList</h3>
+        </div>
+    </div>
+
+    <div class="test-controls">
+        <h2>Test Controls</h2>
+        <p>Actions on Vertical List:</p>
+        <button id="btn-set-active">Set 'Cities' as Active</button>
+        <button id="btn-clear-active">Clear Active</button>
+        <button id="btn-load-empty">Load Empty List</button>
+        <button id="btn-reload">Reload Initial Items</button>
+    </div>
+
+    <div id="log">
+        <p style="color: #aaa;">Listening for events...</p>
+    </div>
+
+    <script type="module">
+        import NavigationListComponent from './NavigationListComponent.js';
+
+        const logEl = document.getElementById('log');
+        function log(message) {
+            console.log(message);
+            logEl.innerHTML += `> ${JSON.stringify(message)}<br>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        const mockItems = [
+            { id: 'item-nature', name: 'Nature 🌲' },
+            { id: 'item-cities', name: 'Cities 🏙️' },
+            { id: 'item-abstract', name: 'Abstract 🎨' },
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const verticalContainer = document.getElementById('vertical-nav-container');
+            const horizontalContainer = document.getElementById('horizontal-nav-container');
+            const verticalNav = new NavigationListComponent(verticalContainer, { direction: 'vertical' });
+            verticalNav.setItems(mockItems);
+            verticalContainer.addEventListener('item:select', e => log({ source: 'vertical', event: 'item:select', detail: e.detail }));
+            const horizontalNav = new NavigationListComponent(horizontalContainer, { direction: 'horizontal' });
+            horizontalNav.setItems(mockItems);
+            horizontalContainer.addEventListener('item:select', e => log({ source: 'horizontal', event: 'item:select', detail: e.detail }));
+            document.getElementById('btn-set-active').addEventListener('click', () => { log({ action: "Calling setActiveItem('item-cities')" }); verticalNav.setActiveItem('item-cities'); });
+            document.getElementById('btn-clear-active').addEventListener('click', () => { log({ action: "Calling setActiveItem(null)" }); verticalNav.setActiveItem(null); });
+            document.getElementById('btn-load-empty').addEventListener('click', () => { log({ action: "Calling setItems([])" }); verticalNav.setItems([]); });
+            document.getElementById('btn-reload').addEventListener('click', () => { log({ action: "Calling setItems(mockItems)" }); verticalNav.setItems(mockItems); });
+        });
+    </script>
+
+</body>
+</html>

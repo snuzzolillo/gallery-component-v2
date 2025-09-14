@@ -1,0 +1,48 @@
+{
+  "items": [
+    {
+      "id": "item-001",
+      "name": "Mountain Lake",
+      "thumbSrc": "https://placehold.co/400x400/3498db/ffffff?text=Source+1",
+      "dataType": "url",
+      "source": "https://placehold.co/1200x1200/3498db/ffffff?text=Source+1",
+      "metadata": {
+        "type": "image",
+        "frameSize": "1200x1200"
+      }
+    },
+    {
+      "id": "item-002",
+      "name": "Forest Path",
+      "thumbSrc": "https://placehold.co/400x400/2ecc71/ffffff?text=Source+2",
+      "dataType": "url",
+      "source": "https://placehold.co/1200x1200/2ecc71/ffffff?text=Source+2",
+      "metadata": {
+        "type": "image",
+        "frameSize": "1200x1200"
+      }
+    },
+    {
+      "id": "item-003",
+      "name": "Abstract City",
+      "thumbSrc": "https://placehold.co/400x400/9b59b6/ffffff?text=Source+3",
+      "dataType": "url",
+      "source": "https://placehold.co/1200x1200/9b59b6/ffffff?text=Source+3",
+      "metadata": {
+        "type": "image",
+        "frameSize": "1200x1200"
+      }
+    },
+    {
+      "id": "item-004",
+      "name": "Coastal View",
+      "thumbSrc": "https://placehold.co/400x400/f1c40f/ffffff?text=Source+4",
+      "dataType": "url",
+      "source": "https://placehold.co/1200x1200/f1c40f/ffffff?text=Source+4",
+      "metadata": {
+        "type": "image",
+        "frameSize": "1200x1200"
+      }
+    }
+  ]
+}

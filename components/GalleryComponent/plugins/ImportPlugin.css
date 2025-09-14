@@ -1,0 +1,51 @@
+/* =============================================================== */
+/* FILE: /components/GalleryComponent/plugins/ImportPlugin.css     */
+/* VERSION: 1.1.0 (Theme Integration)                              */
+/* =============================================================== */
+
+.import-file-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.import-file-list li {
+    display: grid;
+    grid-template-columns: 1fr 100px 50px;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.import-file-list li:last-child {
+    border-bottom: none;
+}
+
+.import-file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.import-progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #333;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.import-progress-fill {
+    width: 0%;
+    height: 100%;
+    background-color: var(--color-button-primary-bg);
+    transition: width 0.3s ease;
+}
+
+.import-status {
+    text-align: right;
+    font-weight: bold;
+}

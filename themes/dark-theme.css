@@ -1,0 +1,67 @@
+/* =============================================================== */
+/* FILE: /themes/dark-theme.css                                    */
+/* Defines the variables for the dark theme.                       */
+/* =============================================================== */
+
+:root {
+    /* =================================
+       1. DENSITY & SPACING
+       ================================= */
+    /**
+     * A multiplier to control UI density.
+     * 1 = Regular, < 1 = More compact (less padding), > 1 = More comfortable (more padding).
+     */
+    --density-factor: 1;
+    --spacing-base-unit: 8px;
+
+    /* =================================
+       2. COLORS
+       ================================= */
+    --color-background-page: #121212;
+    --color-background-component: #2d2d2d;
+    --color-background-inset: #222; /* For elements like log boxes or input backgrounds */
+    --color-background-overlay: rgba(0, 0, 0, 0.6);
+    --color-text-primary: #e0e0e0;
+    --color-text-secondary: #999;
+    --color-text-log: #0f0; /* Specific color for log text */
+    --color-border: #444;
+
+    /* --- Buttons --- */
+    --color-button-primary-bg: #3498db;
+    --color-button-primary-text: #ffffff;
+    --color-button-secondary-bg: #555;
+    --color-button-secondary-text: #e0e0e0;
+    --color-button-danger-bg: #e74c3c;
+    --color-button-success-bg: #2ecc71;
+    --color-button-info-bg: #5dade2;
+
+    /* =================================
+       3. TYPOGRAPHY
+       ================================= */
+    --font-family-main: sans-serif;
+    --font-size-base: 16px;
+
+    /* =================================
+       4. DERIVED VALUES (Calculated from base values)
+       ================================= */
+    --padding-sm: calc(var(--spacing-base-unit) * 0.75 * var(--density-factor));
+    --padding-md: calc(var(--spacing-base-unit) * 1.5 * var(--density-factor));
+    --padding-lg: calc(var(--spacing-base-unit) * 2 * var(--density-factor));
+    --gap-md: calc(var(--spacing-base-unit) * 1 * var(--density-factor));
+
+    --font-size-md: var(--font-size-base);
+    --font-size-lg: calc(var(--font-size-base) * 1.25);
+}
+
+/* --- Global Styles --- */
+body, html {
+    background-color: var(--color-background-page);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-main);
+    font-size: var(--font-size-md);
+}
+
+/* --- Density Modifiers --- */
+.density-compact { --density-factor: 0.7; }
+.density-super-compact { --density-factor: 0.5; } /* Example of an even denser level */
+.density-comfortable { --density-factor: 1.3; }
