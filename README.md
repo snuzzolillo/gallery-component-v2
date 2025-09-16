@@ -1,32 +1,32 @@
 # ✨ Gallery Component v2 ✨
 
-Un componente de galería moderno, modular y altamente extensible construido con JavaScript puro.
+A modern, modular, and highly extensible gallery component built with pure JavaScript.
 
-Bienvenido a `GalleryComponent`, una potente solución para gestionar y mostrar colecciones de medios en tus aplicaciones web. Olvídate de los scripts de galería monolíticos y difíciles de personalizar. Hemos construido esto desde cero con una **arquitectura basada en componentes**, dándote la máxima flexibilidad y control.
+Welcome to `GalleryComponent`, a powerful solution for managing and displaying media collections in your web applications. Forget about monolithic and hard-to-customize gallery scripts. We've built this from the ground up with a **component-based architecture**, giving you maximum flexibility and control.
 
-## 🚀 Características Clave
+## 🚀 Key Features
 
-*   **🧩 Verdaderamente Modular:** El `GalleryComponent` es el orquestador, pero el verdadero poder proviene de sus bloques de construcción. Cada parte de la UI es su propio componente independiente:
-    *   `ToolbarComponent`: Una barra de herramientas inteligente y responsiva con un menú de desbordamiento automático "Más...".
-    *   `ItemsGridComponent`: Una cuadrícula flexible para mostrar tus medios, configurable para diferentes layouts y relaciones de aspecto.
-    *   `NavigationListComponent`: Un componente limpio para la navegación por carpetas o categorías.
-    *   `ModalComponent`: Un sistema de modales genérico y potente para previsualizaciones, diálogos y formularios.
-*   **🔌 Agnóstico al Backend:** Conéctalo a cualquier backend o fuente de datos que desees. El componente opera sobre un simple contrato `dataSource`. Solo tienes que implementar los métodos requeridos (`onLoadItems`, `onDeleteItem`, etc.) y listo.
-*   **🎨 Personalizable con Temas:** Adapta fácilmente la apariencia usando variables CSS. Se proporciona un tema oscuro por defecto, pero puedes crear el tuyo para que coincida con el diseño de tu aplicación.
-*   **⚙️ Extensible con Plugins:** Añade nueva funcionalidad sin tocar el código principal. El sistema de plugins te permite agregar botones personalizados a la barra de herramientas e implementar flujos de trabajo complejos.
-*   **Vanilla JS, Sin Dependencias:** Construido con módulos de JavaScript puros. Sin frameworks, sin pasos de compilación complejos. Solo código moderno y limpio.
+*   **🧩 Truly Modular:** The `GalleryComponent` is the orchestrator, but the real power comes from its building blocks. Each part of the UI is its own independent component:
+    *   `ToolbarComponent`: A smart and responsive toolbar with an automatic "More..." overflow menu.
+    *   `ItemsGridComponent`: A flexible grid to display your media, configurable for different layouts and aspect ratios.
+    *   `NavigationListComponent`: A clean component for navigating through folders or categories.
+    *   `ModalComponent`: A generic and powerful modal system for previews, dialogs, and forms.
+*   **🔌 Backend Agnostic:** Connect it to any backend or data source you want. The component operates on a simple `dataSource` contract. Just implement the required methods (`onLoadItems`, `onDeleteItem`, etc.), and you're good to go.
+*   **🎨 Themable:** Easily adapt the look and feel using CSS variables. A default dark theme is provided, but you can create your own to match your application's design.
+*   **⚙️ Extensible with Plugins:** Add new functionality without touching the core code. The plugin system allows you to add custom buttons to the toolbar and implement complex workflows.
+*   **Vanilla JS, No Dependencies:** Built with pure JavaScript modules. No frameworks, no complex build steps. Just modern, clean code.
 
-## 💡 La Visión
+## 💡 The Vision
 
-Este proyecto nació de la necesidad de una galería que fuera a la vez potente y fácil de adaptar. La filosofía central es la **separación de responsabilidades**. El `GalleryComponent` se encarga del "qué" (la lógica y el estado), mientras que los sub-componentes se encargan del "cómo" (la presentación).
+This project was born from the need for a gallery that was both powerful and easy to adapt. The core philosophy is the **separation of concerns**. The `GalleryComponent` handles the "what" (the logic and state), while the sub-components handle the "how" (the presentation).
 
-Esta arquitectura no solo hace que el código sea más limpio y fácil de mantener, sino que también significa que puedes **reutilizar los componentes individuales** (`ToolbarComponent`, `ModalComponent`, etc.) en otras partes de tu aplicación.
+This architecture not only makes the code cleaner and easier to maintain, but it also means you can **reuse the individual components** (`ToolbarComponent`, `ModalComponent`, etc.) in other parts of your application.
 
-## 🏁 Cómo Empezar
+## 🏁 Getting Started
 
-1.  Incluye los archivos de los componentes en tu proyecto.
-2.  Crea un elemento contenedor en tu HTML.
-3.  Instancia el componente con un `dataSource`.
+1.  Include the component files in your project.
+2.  Create a container element in your HTML.
+3.  Instantiate the component with a `dataSource`.
 
 ```html
 <!-- index.html -->
@@ -36,15 +36,15 @@ Esta arquitectura no solo hace que el código sea más limpio y fácil de manten
     import GalleryComponent from './components/GalleryComponent/GalleryComponent.js';
 
     const myDataSource = {
-        // Implementa tu lógica de obtención de datos aquí
+        // Implement your data fetching logic here
         onLoadItems: async (folderId) => {
             // ej., fetch('/api/items', { body: JSON.stringify({ folderId }) })
             return [
-                { id: 1, name: 'Mi Primera Imagen', thumbSrc: '...', mediaUrl: '...' },
-                { id: 2, name: 'Otra Imagen', thumbSrc: '...', mediaUrl: '...' }
+                { id: 1, name: 'My First Image', thumbSrc: '...', mediaUrl: '...' },
+                { id: 2, name: 'Another Image', thumbSrc: '...', mediaUrl: '...' }
             ];
         },
-        // ... otros métodos como onDeleteItem, onRenameItem, etc.
+        // ... other methods like onDeleteItem, onRenameItem, etc.
     };
 
     const gallery = new GalleryComponent('#my-gallery', {

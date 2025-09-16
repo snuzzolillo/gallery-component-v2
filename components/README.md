@@ -1,49 +1,49 @@
-# 🏛️ Arquitectura de Componentes
+# 🏛️ Component Architecture
 
-Este documento explica el "porqué" y el "cómo" de la arquitectura basada en componentes utilizada en este proyecto.
+This document explains the "why" and "how" of the component-based architecture used in this project.
 
-## La Filosofía: Separación de Responsabilidades
+## The Philosophy: Separation of Concerns
 
-El objetivo principal de esta arquitectura es alejarse de un único y monolítico `GalleryComponent` que lo hace todo. En su lugar, hemos desglosado la interfaz de usuario y la lógica en componentes más pequeños, independientes y reutilizables.
+The main goal of this architecture is to move away from a single, monolithic `GalleryComponent` that does everything. Instead, we have broken down the user interface and logic into smaller, independent, and reusable components.
 
-Este enfoque proporciona varias ventajas clave:
-*   **Mantenibilidad:** Es mucho más fácil corregir un error o añadir una característica a un componente pequeño y enfocado que a uno gigante y complejo.
-*   **Reutilización:** Componentes como `ToolbarComponent` o `ModalComponent` son genéricos por diseño. Puedes tomarlos y usarlos en partes completamente diferentes de tu aplicación, no solo dentro de la galería.
-*   **Testabilidad:** Cada componente puede ser probado de forma aislada, asegurando que su API y eventos funcionen como se espera antes de integrarlo en el sistema más grande.
+This approach provides several key advantages:
+*   **Maintainability:** It's much easier to fix a bug or add a feature to a small, focused component than to a giant, complex one.
+*   **Reusability:** Components like `ToolbarComponent` or `ModalComponent` are generic by design. You can take them and use them in completely different parts of your application, not just within the gallery.
+*   **Testability:** Each component can be tested in isolation, ensuring its API and events work as expected before integrating it into the larger system.
 
-## Los Actores: Roles y Responsabilidades
+## The Actors: Roles and Responsibilities
 
-La arquitectura se construye en torno a un orquestador central y varios componentes "trabajadores" especializados.
+The architecture is built around a central orchestrator and several specialized "worker" components.
 
-### 👑 El Orquestador: `GalleryComponent`
+### 👑 The Orchestrator: `GalleryComponent`
 
-El `GalleryComponent` es el cerebro de la operación. Es el **único componente que mantiene el estado de la aplicación** y se comunica con el `dataSource`. Sus principales responsabilidades son:
-1.  **Gestión de Estado:** Sabe qué carpeta está activa, qué ítems están seleccionados y qué datos están cargados actualmente.
-2.  **Ejecución de Lógica:** Cuando un usuario hace clic en "Borrar" en el `ToolbarComponent`, el `GalleryComponent` recibe el evento, muestra una confirmación usando el `ModalComponent` y, si se confirma, llama al método `onDeleteItem` en el `dataSource`.
-3.  **Flujo de Datos:** Obtiene datos del `dataSource` y pasa las piezas necesarias a los componentes de presentación.
+The `GalleryComponent` is the brain of the operation. It is the **only component that maintains the application state** and communicates with the `dataSource`. Its main responsibilities are:
+1.  **State Management:** It knows which folder is active, which items are selected, and what data is currently loaded.
+2.  **Logic Execution:** When a user clicks "Delete" in the `ToolbarComponent`, the `GalleryComponent` receives the event, shows a confirmation using the `ModalComponent`, and, if confirmed, calls the `onDeleteItem` method on the `dataSource`.
+3.  **Data Flow:** It fetches data from the `dataSource` and passes the necessary pieces to the presentational components.
 
-### 👷 Los Trabajadores: Componentes de Presentación
+### 👷 The Workers: Presentational Components
 
-Estos componentes son "tontos" por diseño. No saben nada sobre la lógica de la aplicación. Reciben datos, los renderizan y emiten eventos cuando el usuario interactúa con ellos.
+These components are "dumb" by design. They know nothing about the application's logic. They receive data, render it, and emit events when the user interacts with them.
 
 *   **`ItemsGridComponent`**:
-    *   **Recibe:** Un array de objetos de ítems.
-    *   **Hace:** Los renderiza en una cuadrícula CSS.
-    *   **Emite:** `itemClick`, `actionClick` cuando un usuario interactúa con un ítem.
+    *   **Receives:** An array of item objects.
+    *   **Does:** Renders them in a CSS grid.
+    *   **Emits:** `itemClick`, `actionClick` when a user interacts with an item.
 
 *   **`ToolbarComponent`**:
-    *   **Recibe:** Un array de configuraciones de botones/controles.
-    *   **Hace:** Renderiza una barra de herramientas, manejando el desbordamiento responsivo automáticamente.
-    *   **Emite:** `buttonClick` cuando un usuario hace clic en un botón.
+    *   **Receives:** An array of button/control configurations.
+    *   **Does:** Renders a toolbar, automatically handling responsive overflow.
+    *   **Emits:** `buttonClick` when a user clicks a button.
 
 *   **`NavigationListComponent`**:
-    *   **Recibe:** Un array de objetos de carpetas/categorías.
-    *   **Hace:** Renderiza una lista de navegación simple.
-    *   **Emite:** `item:select` cuando un usuario hace clic en un ítem.
+    *   **Receives:** An array of folder/category objects.
+    *   **Does:** Renders a simple navigation list.
+    *   **Emits:** `item:select` when a user clicks an item.
 
 *   **`ModalComponent`**:
-    *   **Recibe:** Contenido HTML y una configuración de botones.
-    *   **Hace:** Muestra un diálogo modal.
-    *   **Emite:** `buttonClick` cuando se hace clic en un botón de acción.
+    *   **Receives:** HTML content and a button configuration.
+    *   **Does:** Displays a modal dialog.
+    *   **Emits:** `buttonClick` when an action button is clicked.
 
-Este patrón de comunicación (eventos hacia arriba, datos y llamadas a la API hacia abajo) mantiene el sistema desacoplado, robusto y fácil de entender.
+This communication pattern (events up, data and API calls down) keeps the system decoupled, robust, and easy to understand.

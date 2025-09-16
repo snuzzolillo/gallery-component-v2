@@ -1,33 +1,33 @@
 # GalleryComponent
 
-**Versión:** 16.0.0
+**Version:** 16.0.0
 
-## Propósito
+## Purpose
 
-El `GalleryComponent` es el componente principal y orquestador de toda la aplicación de galería. Integra todos los demás sub-componentes (`ToolbarComponent`, `ItemsGridComponent`, `NavigationListComponent`, `ModalComponent`) para proporcionar una experiencia de gestión de medios completa y cohesiva.
+The `GalleryComponent` is the main component and orchestrator of the entire gallery application. It integrates all other sub-components (`ToolbarComponent`, `ItemsGridComponent`, `NavigationListComponent`, `ModalComponent`) to provide a complete and cohesive media management experience.
 
-### Responsabilidades Clave
+### Key Responsibilities
 
-- **Orquestación:** Inicializa y gestiona el ciclo de vida de todos los sub-componentes.
-- **Gestión de Estado:** Mantiene el estado principal de la aplicación, como la carpeta actual, los ítems cargados y la selección actual.
-- **Comunicación con `dataSource`:** Actúa como el único punto de contacto con el `dataSource` para realizar operaciones CRUD (Cargar, Crear, Renombrar, Borrar) tanto para ítems como para carpetas.
-- **Manejo de Lógica de Negocio:** Implementa la lógica para acciones complejas que involucran múltiples componentes, como mover un ítem (requiere un modal de selección y una llamada al `dataSource`).
-- **API Pública:** Expone una API para controlar la galería desde el exterior y un sistema `notify` para recibir actualizaciones en tiempo real.
+- **Orchestration:** Initializes and manages the lifecycle of all sub-components.
+- **State Management:** Maintains the main application state, such as the current folder, loaded items, and the current selection.
+- **Communication with `dataSource`:** Acts as the single point of contact with the `dataSource` to perform CRUD operations (Load, Create, Rename, Delete) for both items and folders.
+- **Business Logic Handling:** Implements the logic for complex actions involving multiple components, such as moving an item (requires a selection modal and a call to the `dataSource`).
+- **Public API:** Exposes an API to control the gallery from the outside and a `notify` system to receive real-time updates.
 
-## API Pública
+## Public API
 
-- `constructor(containerSelector, options)`: Inicializa el componente.
-- `initialize()`: Carga los datos iniciales (carpetas e ítems).
-- `notify(type, payload)`: Permite que sistemas externos "empujen" actualizaciones de estado al componente.
-- `load(folderId)`: Carga y renderiza los ítems de una carpeta específica.
-- `setTitle(title)`: Establece el título principal visible en la barra de herramientas.
-- `getSelectedItems()`: Devuelve un array con los objetos de los ítems seleccionados.
-- `clearSelection()`: Deselecciona todos los ítems.
-- `selectAll()`: Selecciona todos los ítems visibles.
-- `toggleFolderPanel(forceState)`: Muestra u oculta el panel de carpetas.
+- `constructor(containerSelector, options)`: Initializes the component.
+- `initialize()`: Loads initial data (folders and items).
+- `notify(type, payload)`: Allows external systems to "push" state updates to the component.
+- `load(folderId)`: Loads and renders the items for a specific folder.
+- `setTitle(title)`: Sets the main title visible in the toolbar.
+- `getSelectedItems()`: Returns an array with the selected item objects.
+- `clearSelection()`: Deselects all items.
+- `selectAll()`: Selects all visible items.
+- `toggleFolderPanel(forceState)`: Shows or hides the folder panel.
 
-## Eventos Emitidos
+## Emitted Events
 
-- `selectionChanged`: Se dispara cuando la selección de ítems cambia. `detail: { selectedItems }`.
-- `itemPreview`: Se dispara cuando un usuario solicita una vista previa de un ítem. `detail: { item }`.
-- `onActionComplete`: Se dispara después de que una acción sobre un ítem (como borrar o mover) se completa. `detail: { action, items }`.
+- `selectionChanged`: Fired when the item selection changes. `detail: { selectedItems }`.
+- `itemPreview`: Fired when a user requests a preview of an item. `detail: { item }`.
+- `onActionComplete`: Fired after an action on an item (like delete or move) is completed. `detail: { action, items }`.
