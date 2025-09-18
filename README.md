@@ -22,6 +22,18 @@ This project was born from the need for a gallery that was both powerful and eas
 
 This architecture not only makes the code cleaner and easier to maintain, but it also means you can **reuse the individual components** (`ToolbarComponent`, `ModalComponent`, etc.) in other parts of your application.
 
+## 🧩 The Components: Our Building Blocks
+
+The power of this project lies in its modularity. Each part of the UI is a self-contained, reusable component.
+
+*   **`GalleryComponent`:** The main orchestrator. It manages state, communicates with the `dataSource`, and integrates all other components.
+*   **`ToolbarComponent`:** A smart and responsive toolbar that automatically handles button overflow with a "More..." menu.
+*   **`ItemsGridComponent`:** A flexible grid for displaying media, configurable for various layouts and aspect ratios.
+*   **`NavigationListComponent`:** A clean and simple component for folder or category navigation.
+*   **`ModalComponent`:** A generic and powerful modal system for previews, dialogs, and forms.
+
+For a deeper dive into the architecture and how these components interact, see the Component Architecture documentation.
+
 ## 🏁 Getting Started
 
 1.  Include the component files in your project.

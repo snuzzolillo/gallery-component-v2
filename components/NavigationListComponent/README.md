@@ -1,23 +1,23 @@
 # NavigationListComponent
 
-**Versión:** 1.0.0
+**Version:** 1.0.0
 
-## Propósito
+## Purpose
 
-El `NavigationListComponent` es un componente simple y genérico para renderizar una lista de ítems navegables. Su propósito es únicamente la presentación y la notificación de la selección del usuario. Originalmente fue `TabsComponent`, pero se renombró para reflejar mejor su función de navegación.
+The `NavigationListComponent` is a simple and generic component for rendering a list of navigable items. Its purpose is solely for presentation and notifying of user selection. It was originally `TabsComponent` but was renamed to better reflect its navigation function.
 
-### Responsabilidades Clave
+### Key Responsibilities
 
-- **Renderizado de Lista:** Muestra una lista de ítems en dirección vertical u horizontal.
-- **Estado Activo:** Resalta visualmente el ítem que está actualmente activo.
-- **Emisión de Eventos:** Emite un evento cuando un usuario hace clic en un ítem.
+- **List Rendering:** Displays a list of items in either a vertical or horizontal direction.
+- **Active State:** Visually highlights the currently active item.
+- **Event Emission:** Emits an event when a user clicks on an item.
 
-## API Pública
+## Public API
 
-- `constructor(container, options)`: Inicializa la lista, permitiendo configurar la `direction` ('vertical' u 'horizontal').
-- `setItems(items)`: Recibe un array de objetos y renderiza la lista. Cada objeto debe tener `id` y `name`.
-- `setActiveItem(itemId)`: Establece visualmente qué ítem de la lista está activo.
+- `constructor(container, options)`: Initializes the list, allowing configuration of the `direction` ('vertical' or 'horizontal').
+- `setItems(items)`: Receives an array of objects and renders the list. Each object must have an `id` and `name`.
+- `setActiveItem(itemId)`: Visually sets which item in the list is active.
 
-## Eventos Emitidos
+## Emitted Events
 
-- `item:select`: Se dispara cuando se hace clic en un ítem. `detail: { itemId }`.
+- `item:select`: Fired when an item is clicked. `detail: { itemId }`.

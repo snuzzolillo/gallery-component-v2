@@ -1,24 +1,24 @@
 # ModalComponent
 
-## Propósito
+## Purpose
 
-El `ModalComponent` es un componente de UI genérico y reutilizable para mostrar contenido en una ventana modal (o diálogo). Está diseñado para ser altamente configurable y desacoplado de cualquier lógica de negocio específica.
+The `ModalComponent` is a generic and reusable UI component for displaying content in a modal window (or dialog). It is designed to be highly configurable and decoupled from any specific business logic.
 
-### Responsabilidades Clave
+### Key Responsibilities
 
-- **Presentación Modal:** Muestra un contenedor superpuesto que bloquea la interacción con el resto de la página.
-- **Configuración Dinámica:** Permite establecer el título, el contenido (HTML), el tamaño y los botones de acción dinámicamente.
-- **Manejo de Interacciones:** Captura los clics en los botones y en el botón de cierre, y los emite como eventos.
+- **Modal Presentation:** Displays an overlay container that blocks interaction with the rest of the page.
+- **Dynamic Configuration:** Allows setting the title, content (HTML), size, and action buttons dynamically.
+- **Interaction Handling:** Captures clicks on buttons and the close button, and emits them as events.
 
-## API Pública
+## Public API
 
-- `constructor(container)`: Inicializa el modal, añadiendo su esqueleto al DOM.
-- `open()`: Muestra el modal.
-- `close()`: Oculta el modal.
-- `setContent(html)`: Establece el contenido HTML del cuerpo del modal.
-- `setOptions(options)`: Configura el título, tamaño y los botones del modal.
+- `constructor(container)`: Initializes the modal, adding its skeleton to the DOM.
+- `open()`: Shows the modal.
+- `close()`: Hides the modal.
+- `setContent(html)`: Sets the HTML content of the modal body.
+- `setOptions(options)`: Configures the title, size, and buttons of the modal.
 
-## Eventos Emitidos
+## Emitted Events
 
-- `buttonClick`: Se dispara cuando se hace clic en un botón de acción del modal. `detail: { value }`.
-- `close`: Se dispara cuando el modal se cierra (ya sea por el botón de cierre o mediante la API).
+- `buttonClick`: Fired when an action button in the modal is clicked. `detail: { value }`.
+- `close`: Fired when the modal is closed (either by the close button or via the API).

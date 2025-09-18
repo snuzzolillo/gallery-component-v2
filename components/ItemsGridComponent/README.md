@@ -1,23 +1,23 @@
 # ItemsGridComponent
 
-## Propósito
+## Purpose
 
-El `ItemsGridComponent` es un componente especializado en renderizar una cuadrícula de ítems (como imágenes, videos, etc.). Su única responsabilidad es la presentación visual de los datos que recibe. Es agnóstico a la lógica de negocio y se controla completamente a través de su API pública.
+The `ItemsGridComponent` is a specialized component for rendering a grid of items (like images, videos, etc.). Its sole responsibility is the visual presentation of the data it receives. It is agnostic to business logic and is controlled entirely through its public API.
 
-### Responsabilidades Clave
+### Key Responsibilities
 
-- **Renderizado de Cuadrícula:** Muestra una colección de ítems en un layout de CSS Grid.
-- **Flexibilidad de Layout:** Permite configurar la dirección del scroll (vertical/horizontal) y forzar un número fijo de columnas o filas.
-- **Gestión de Estado Visual:** Muestra el estado de selección de cada ítem y los menús de acciones contextuales.
-- **Emisión de Eventos:** Captura las interacciones del usuario sobre los ítems (clic, doble clic, clic en acción) y las emite como eventos semánticos para que el componente padre los maneje.
+- **Grid Rendering:** Displays a collection of items in a CSS Grid layout.
+- **Layout Flexibility:** Allows configuration of the scroll direction (vertical/horizontal) and forcing a fixed number of columns or rows.
+- **Visual State Management:** Shows the selection state of each item and contextual action menus.
+- **Event Emission:** Captures user interactions on items (click, double-click, action click) and emits them as semantic events for the parent component to handle.
 
-## API Pública
+## Public API
 
-- `constructor(container, options)`: Inicializa el componente con opciones de layout (ej. `itemSize`, `aspectRatio`, `layout`).
-- `setItems(items)`: Recibe un array de objetos de ítems y re-renderiza completamente la cuadrícula. Cada ítem puede tener propiedades como `isSelected` y `actions`.
+- `constructor(container, options)`: Initializes the component with layout options (e.g., `itemSize`, `aspectRatio`, `layout`).
+- `setItems(items)`: Receives an array of item objects and completely re-renders the grid. Each item can have properties like `isSelected` and `actions`.
 
-## Eventos Emitidos
+## Emitted Events
 
-- `itemClick`: Se dispara con un clic normal sobre un ítem. `detail: { itemId, originalEvent }`.
-- `itemDblClick`: Se dispara con un doble clic sobre un ítem. `detail: { itemId }`.
-- `actionClick`: Se dispara cuando se hace clic en un botón de acción de un ítem. `detail: { itemId, action }`.
+- `itemClick`: Fired on a normal click on an item. `detail: { itemId, originalEvent }`.
+- `itemDblClick`: Fired on a double-click on an item. `detail: { itemId }`.
+- `actionClick`: Fired when an action button on an item is clicked. `detail: { itemId, action }`.
