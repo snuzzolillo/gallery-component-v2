@@ -65,6 +65,6 @@ For a deeper dive into the architecture and how these components interact, see t
 </script>
 ```
 
-## 🔮 ¿Qué Sigue? (Visión para v3)
+## 🔮 What's Next? (Vision for v3)
 
-El viaje no termina aquí. La versión 3 se centrará en llevar el sistema `notify` a su máximo potencial, permitiendo actualizaciones en tiempo real para tareas de fondo de larga duración como la transcodificación de video o la generación de imágenes por IA, con retroalimentación visual directamente en la interfaz de usuario.
+The journey doesn't end here. Version 3 will focus on unlocking the full potential of the `notify` system, enabling real-time updates for long-running background tasks such as video transcoding or AI-based image generation, with visual feedback directly in the user interface.
