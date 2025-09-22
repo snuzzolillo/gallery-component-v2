@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent Example: 03 - Plugins and Actions</title>
+
+    <!-- 1. Load the base theme for the component -->
+    <link rel="stylesheet" href="../../themes/dark-theme.css">
+
+    <!-- 2. Add some basic page styles -->
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--color-background-page);
+        }
+        #gallery-container {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- 3. Define the container where the gallery will be rendered -->
+    <div id="gallery-container"></div>
+
+    <!-- 4. Import and initialize the component -->
+    <script type="module">
+        // Import the main component, the data source, and our custom plugin
+        import GalleryComponent from '../../components/GalleryComponent/GalleryComponent.js';
+        import { mockDataSource } from './mockDataSource.js';
+        import GenerationPlugin from './plugins/GenerationPlugin.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Instantiate the gallery, this time passing an array of plugins.
+                // The GalleryComponent will automatically initialize them and add their
+                // custom buttons to the toolbar.
+                const gallery = new GalleryComponent('#gallery-container', {
+                    dataSource: mockDataSource,
+                    plugins: [
+                        new GenerationPlugin() // Add an instance of our plugin
+                    ]
+                });
+
+            } catch (error) {
+                console.error('Failed to initialize GalleryComponent:', error);
+                document.getElementById('gallery-container').innerHTML = `<p style="color: red; padding: 2rem;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

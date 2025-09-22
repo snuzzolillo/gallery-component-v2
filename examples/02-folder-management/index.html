@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryComponent Example: 02 - Folder Management</title>
+
+    <!-- 1. Load the base theme for the component -->
+    <link rel="stylesheet" href="../../themes/dark-theme.css">
+
+    <!-- 2. Add some basic page styles -->
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--color-background-page);
+        }
+        #gallery-container {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- 3. Define the container where the gallery will be rendered -->
+    <div id="gallery-container"></div>
+
+    <!-- 4. Import and initialize the component -->
+    <script type="module">
+        // Import the main component and the mock data source
+        import GalleryComponent from '../../components/GalleryComponent/GalleryComponent.js';
+        import { mockDataSource } from './mockDataSource.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Instantiate the gallery with the container selector and options.
+                // By setting `foldersAllowed: true` (or simply omitting it, as it's the default),
+                // the component will render the side panel for folder navigation and management.
+                const gallery = new GalleryComponent('#gallery-container', {
+                    foldersAllowed: true,
+                    dataSource: mockDataSource
+                });
+
+            } catch (error) {
+                console.error('Failed to initialize GalleryComponent:', error);
+                document.getElementById('gallery-container').innerHTML = `<p style="color: red; padding: 2rem;">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
